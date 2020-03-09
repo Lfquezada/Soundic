@@ -28,9 +28,12 @@ def search(entry):
 		output = []
 		for tuple in rows:
 			output.append(str(tuple[0]))
-		output = ", ".join(output)
+		
+		outputText = ['Songs: ']
+		outputText.append(", ".join(output))
+		outputText = "".join(outputText)
 
-		outputLabel['text'] = output
+		outputLabel['text'] = outputText
 
 '''
 ------------------------------------------
@@ -40,24 +43,33 @@ def search(entry):
 root = tk.Tk()
 root.title('Soundic')
 
-# #171717
-canvas = tk.Canvas(root,height=700,width=1200,bg='#171717')
+# Canvas setup
+canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
 canvas.pack()
 
+# Main frame
 frame = tk.Frame(root,bg='#121212')
 frame.place(relx=0,rely=0,relwidth=1,relheight=1)
 
-testButton = tk.Button(root,text='Query',command=testQuery,width=10,height=2,fg='#575757',bg='#171717')
+# Test queries
+testButton = tk.Button(root,text='Query',command=testQuery,width=10,height=2,fg='#575757',bg='#101010')
 testButton.pack(side='right')
 
+# Soundic Logo
+logo = tk.PhotoImage(file='logo-soundic.png')
+logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+logoLabel.place(relx=0.82,rely=0.01)
+
+# Search text field
 searchEntry = tk.Entry(frame,text='entry',fg='#ffffff',bg='#171717')
 searchEntry.place(relx=0.005,rely=0.01,relwidth=0.25,relheight=0.05)
-#searchEntry.pack(side='left')
 
-searchButton = tk.Button(frame,text='Search',width=10,height=2,fg='#575757',bg='#171717',command=lambda: search(searchEntry.get()))
-searchButton.place(relx=0.265,rely=0.01,relwidth=0.08,relheight=0.05)
-#searchButton.pack(side='left')
+# Search Button
+searchIcon = tk.PhotoImage(file='icon-search.png')
+searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get()))
+searchButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.04)
 
+# Temporary query output label
 outputLabel = tk.Label(frame,text='Output',fg='#ffffff',bg='#171717')
 outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.2)
 

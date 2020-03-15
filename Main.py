@@ -43,17 +43,15 @@ def search(entry):
 		for row in rows:
 			print(row)
 
-		'''
 		output = []
 		for tuple in rows:
-			output.append(str(tuple[0]))
+			output.append(str(tuple))
 		
 		outputText = ['Songs: ']
-		outputText.append(", ".join(output))
-		outputText = "".join(outputText)
+		outputText.append("\n".join(output))
+		outputText = "\n".join(outputText)
 
 		outputLabel['text'] = outputText
-		'''
 
 
 '''
@@ -62,7 +60,7 @@ def search(entry):
 ------------------------------------------
 '''
 
-global loginLogo,logo,searchIcon,outputLabel
+global loginLogo,logo,searchIcon
 
 # Login Screen
 def loginApp():
@@ -120,8 +118,9 @@ def mainApp():
 	searchButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.035)
 
 	# Temporary query output label
+	global outputLabel
 	outputLabel = tk.Label(frame,text='Output',fg='#ffffff',bg='#171717')
-	outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.2)
+	outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.5)
 
 
 '''

@@ -279,6 +279,7 @@ def mainApp():
 '''
 
 root = tk.Tk()
+root.configure(background='black')
 
 # preload assets
 loginLogo = tk.PhotoImage(file='logo-login.png')

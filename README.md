@@ -6,7 +6,6 @@ UVG - Bases de Datos
 * Python 3.x
 * psycopg2
 * tkinter
-* Pillow
 
 ## Usage
 

@@ -28,7 +28,7 @@ def authenticate(username,password):
 
 def testQuery():
 	# testing queries
-	cursor.execute("SELECT * FROM track LIMIT 2")
+	cursor.execute("SELECT * FROM Album LIMIT 5")
 	rows = cursor.fetchall()
 	for tuple in rows:
 		print(tuple)
@@ -36,10 +36,14 @@ def testQuery():
 def search(entry):
 
 	if len(entry) > 0:
-		query = "SELECT name FROM track WHERE artist= '" + str(entry).lower() + "'"
+		query = "SELECT Track.name,Album.Title,Artist.name FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Album.Title= '" + str(entry) + "'"
 		cursor.execute(query)
 		rows = cursor.fetchall()
 
+		for row in rows:
+			print(row)
+
+		'''
 		output = []
 		for tuple in rows:
 			output.append(str(tuple[0]))
@@ -49,6 +53,7 @@ def search(entry):
 		outputText = "".join(outputText)
 
 		outputLabel['text'] = outputText
+		'''
 
 
 '''
@@ -57,7 +62,7 @@ def search(entry):
 ------------------------------------------
 '''
 
-global loginLogo,logo,searchIcon
+global loginLogo,logo,searchIcon,outputLabel
 
 # Login Screen
 def loginApp():

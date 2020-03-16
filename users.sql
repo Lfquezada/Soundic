@@ -1,3 +1,8 @@
+ALTER TABLE customer
+ADD COLUMN username   character varying (10);
+ALTER TABLE customer
+ADD COLUMN passwrd   character varying (20);
+
 UPDATE customer SET username='1GON' WHERE CustomerId =1;
 UPDATE customer SET passwrd='casa' WHERE CustomerId =1;
 UPDATE customer SET username='2KOH' WHERE CustomerId =2;

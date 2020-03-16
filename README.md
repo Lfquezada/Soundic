@@ -10,7 +10,7 @@ UVG - Bases de Datos
 ## Usage
 
 ```
-python3 Main.py
+python3 Soundic.py
 ```
 
 ## Authors

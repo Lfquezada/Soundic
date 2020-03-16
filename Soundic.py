@@ -102,7 +102,7 @@ def search(entry):
 ------------------------------------------
 '''
 
-global loginLogo,logo,searchIcon
+global loginLogo,logo,searchIcon,userIcon
 
 # Login Screen
 def loginApp(reload):
@@ -252,7 +252,6 @@ def mainApp():
 	# Test queries
 	testButton = tk.Button(frame,text='Query',command=testQuery,width=10,height=2,fg='#575757',bg='#101010')
 	testButton.pack(side='right')
-	#testButton.place(relx=0.25,rely=0.7,relwidth=0.5,relheight=0.2)
 
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
@@ -266,10 +265,14 @@ def mainApp():
 	searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get()))
 	searchButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.042)
 
+	# Profile Button
+	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	profileButton.place(relx=0.75,rely=0.02,relwidth=0.025,relheight=0.042)
+
 	# Temporary query output label
 	global outputLabel
 	outputLabel = tk.Label(frame,text=' Welcome to Soundic! ',fg='#ffffff',bg='#171717')
-	outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.5)
+	outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.6)
 
 
 '''
@@ -285,6 +288,7 @@ root.configure(background='black')
 loginLogo = tk.PhotoImage(file='logo-login.png')
 logo = tk.PhotoImage(file='logo-soundic.png')
 searchIcon = tk.PhotoImage(file='icon-search.png')
+userIcon = tk.PhotoImage(file='icon-user.png')
 
 loginApp(reload=False)
 root.mainloop()

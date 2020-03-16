@@ -1,7 +1,9 @@
 
 import tkinter as tk
+from tkinter import ttk
 import os
 import psycopg2 as pg
+import random
 
 '''
 ------------------------------------------
@@ -19,34 +21,105 @@ cursor = connection.cursor()
 '''
 def authenticate(username,password):
 
-	if username == 'user20' and password == 'pass20':
+	if username == 'masteruser' and password == 'masterpass':
 		confirmationLabel['text'] = 'Login Successful'
 		confirmationLabel['fg'] = '#2ecc71'
-		mainApp()
-	else:
-		confirmationLabel['text'] = 'Invalid username or password'
-		confirmationLabel['fg'] = '#e74c3c'
-
-
-def createUser(firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email):
-
-	print(firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email)
+		mainApp(username)
 
 	query = """
-
-	PERFORM INSERT HERE
-
+	SELECT DISTINCT c.passwrd
+	FROM Customer c
+	WHERE c.username = '""" + username + """'
 	"""
 
-	#cursor.execute(query)
-	#rows = cursor.fetchall()
+	cursor.execute(query)
+	rows = cursor.fetchall()
 
-	loginApp(reload=True)
+	if len(rows) == 0:
+		confirmationLabel['text'] = 'Invalid username'
+		confirmationLabel['fg'] = '#e74c3c'
+	else:
+		if password == rows[0][0]:
+			confirmationLabel['text'] = 'Login Successful'
+			confirmationLabel['fg'] = '#2ecc71'
+			mainApp(username)
+		else:
+			confirmationLabel['text'] = 'Invalid password'
+			confirmationLabel['fg'] = '#e74c3c'
+
+
+def createUser(username,password,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email):
+
+	if len(firstName) <= 1 or len(lastName) <= 1 or len(username) <= 1 or len(password) <= 1 or len(username) > 10 or len(password) > 20:
+		# not a valid register, show a red warning
+		regConfLabel['text'] = 'Invalid data lenght'
+		regConfLabel['fg'] = '#e74c3c'
+	else:
+		# valid register but username may already exist
+
+		query = """
+		SELECT c.username
+		FROM Customer c
+		WHERE c.username = '""" + username + """'
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		
+		if len(rows) > 0:
+			# then username already exists, show red warning
+			regConfLabel['text'] = 'Username already exists'
+			regConfLabel['fg'] = '#e74c3c'
+
+		else:
+			# its a valid register with a unique username
+			regConfLabel['text'] = 'Successful Registration'
+			regConfLabel['fg'] = '#2ecc71'
+
+			# get the last custumer id added
+			query = """
+			SELECT c.CustomerId
+			FROM Customer c
+			ORDER BY c.CustomerId DESC
+			LIMIT 1
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+			newCustomerId = rows[0][0] + 1
+			newCustomerId = str(newCustomerId)
+
+			# get a random employee id
+			query = """
+			SELECT e.EmployeeId
+			FROM Employee e
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+			newSupportRepId = rows[random.randint(1,len(rows)-1)][0]
+			newSupportRepId = str(newSupportRepId)
+
+			query = """
+
+			INSERT INTO Customer (username,passwrd,CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId) 
+			VALUES ('""" + username + """','""" + password + """',""" + newCustomerId + """,'""" + firstName + """','""" + lastName + """','""" + company + """','""" + address + """','""" + city + """','""" + state + """','""" + country + """','""" + postalCode + """','""" + phone + """','""" + fax + """','""" + email + """',""" + newSupportRepId + """);
+
+			"""
+
+			cursor.execute(query)
+			connection.commit()
+			loginApp(reload=True)
 
 
 def testQuery():
 	# testing queries
-	cursor.execute("SELECT * FROM Customer LIMIT 5")
+
+	query = """
+	SELECT *
+	FROM Customer
+	ORDER BY Customer.CustomerId DESC
+	LIMIT 1
+	"""
+
+	cursor.execute(query)
 	rows = cursor.fetchall()
 	for tuple in rows:
 		print(tuple)
@@ -133,7 +206,7 @@ def loginApp(reload):
 
 	global confirmationLabel
 	confirmationLabel = tk.Label(text = ' ',font='Arial 12',fg='#121212',bg='#121212')
-	confirmationLabel.place(relx=0.4,rely=0.8)
+	confirmationLabel.place(relx=0.34,rely=0.78)
 
 	loginButton = tk.Button(text='Login',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
 	loginButton.place(relx=0.35,rely=0.68,relwidth=0.15)
@@ -166,7 +239,7 @@ def register():
 
 	passwordLabel = tk.Label(text = 'Password',fg='#ffffff',bg='#121212')
 	passwordLabel.place(relx=0.45,rely=0.22,relwidth=0.25,relheight=0.05)
-	password = tk.Entry(show='*',fg='#ffffff',bg='#171717')
+	password = tk.Entry(fg='#ffffff',bg='#171717')
 	password.place(relx=0.65,rely=0.22,relwidth=boxWidth,relheight=boxHeight)
 
 	firstNameLabel = tk.Label(text = 'First Name',fg='#ffffff',bg='#121212')
@@ -226,9 +299,9 @@ def register():
 
 	global regConfLabel
 	regConfLabel = tk.Label(text = ' ',font='Arial 12',fg='#2ecc71',bg='#121212')
-	regConfLabel.place(relx=0.4,rely=0.9)
+	regConfLabel.place(relx=0.7,rely=0.3)
 
-	loginButton = tk.Button(text='Create',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: createUser(firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
+	loginButton = tk.Button(text='Create',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
 	loginButton.place(relx=0.35,rely=0.95,relwidth=0.15)
 
 	registerButton = tk.Button(text='Go Back',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: loginApp(reload=True))
@@ -236,7 +309,7 @@ def register():
 
 
 # Stream Screen
-def mainApp():
+def mainApp(currentUsername):
 	root.title('Soundic')
 
 	# Canvas setup
@@ -268,6 +341,10 @@ def mainApp():
 	# Profile Button
 	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	profileButton.place(relx=0.75,rely=0.02,relwidth=0.025,relheight=0.042)
+
+	# Logged in Label
+	loggedLabel = tk.Label(frame,text=' Logged in as  '+ currentUsername,font='Arial 12',fg='#2ecc71',bg='#101010')
+	loggedLabel.place(relx=0.62,rely=0.03)
 
 	# Temporary query output label
 	global outputLabel

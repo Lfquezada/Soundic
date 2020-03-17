@@ -1,0 +1,18 @@
+ALTER TABLE Employee ADD COLUMN username   character varying (10);
+ALTER TABLE Employee ADD COLUMN passwrd   character varying (20);
+UPDATE Employee SET username='1ADA' WHERE CustomerId =1;
+UPDATE Employee SET passwrd='pijama' WHERE CustomerId =1;
+UPDATE Employee SET username='2EDW' WHERE CustomerId =2;
+UPDATE Employee SET passwrd='cuaderno' WHERE CustomerId =2;
+UPDATE Employee SET username='3PEA' WHERE CustomerId =3;
+UPDATE Employee SET passwrd='agua de coco' WHERE CustomerId =3;
+UPDATE Employee SET username='4PAR' WHERE CustomerId =4;
+UPDATE Employee SET passwrd='lapiz' WHERE CustomerId =4;
+UPDATE Employee SET username='5JOH' WHERE CustomerId =5;
+UPDATE Employee SET passwrd='kitty' WHERE CustomerId =5;
+UPDATE Employee SET username='6MIT' WHERE CustomerId =6;
+UPDATE Employee SET passwrd='verde' WHERE CustomerId =6;
+UPDATE Employee SET username='7KIN' WHERE CustomerId =7;
+UPDATE Employee SET passwrd='rey' WHERE CustomerId =7;
+UPDATE Employee SET username='8CAL' WHERE CustomerId =8;
+UPDATE Employee SET passwrd='revista' WHERE CustomerId =8;

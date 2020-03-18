@@ -185,7 +185,7 @@ class MultiColumnListbox(object):
 
 		style = ttk.Style()
 		style.configure("darkStyle.Treeview",font=('Arial', 14),fieldbackground="#121212",background="#121212", foreground="white", relief="flat",rowheight=30)
-		style.configure("darkStyle.Treeview.Heading", font=('Arial', 15,'bold'),rowheight=45,background="#121212", foreground="white", relief="flat")
+		style.configure("darkStyle.Treeview.Heading", font=('Arial', 15,'bold'),fieldbackground="#121212",background="white", foreground="#0f0f0f", relief="flat")
 
 		self.tree = ttk.Treeview(columns=self.columnsToShow, show="headings",style="darkStyle.Treeview")
 
@@ -410,7 +410,7 @@ def mainApp(currentUsername):
 
 	# Logged in Label
 	loggedLabel = tk.Label(frame,text=' Logged in as  '+ currentUsername,font='Arial 12',fg='#2ecc71',bg='#101010')
-	loggedLabel.place(relx=0.62,rely=0.03)
+	loggedLabel.place(relx=0.55,rely=0.03)
 
 	global outputTable
 	outputTable = MultiColumnListbox(frame,['Songs','Artists','Albums','Genres'],[])

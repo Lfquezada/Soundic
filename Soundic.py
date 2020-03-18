@@ -106,7 +106,7 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 
 			cursor.execute(query)
 			connection.commit()
-			loginApp(reload=True)
+			login(reload=True)
 
 
 def testQuery():
@@ -157,16 +157,82 @@ def search(entry):
 
 			cursor.execute(query)
 			rows = cursor.fetchall()
+		displaySearchResult(rows)
 
-		output = []
-		for tuple in rows:
-			output.append(str(tuple))
-		
-		outputText = ['Songs: ']
-		outputText.append("\n".join(output))
-		outputText = "\n".join(outputText)
 
-		outputLabel['text'] = outputText
+# Fill listboxes with the query result
+def displaySearchResult(rows):
+	outputTable.updateData(rows)
+
+
+'''
+------------------------------------------
+				Clases
+------------------------------------------
+'''
+class MultiColumnListbox(object):
+
+	def __init__(self,frame,headings,rows):
+		self.frame = frame
+		self.tree = None
+		self.columnsToShow = headings
+		self._setup_widgets(frame)
+		self._build_tree(rows)
+
+	def _setup_widgets(self,frame):
+		container = ttk.Frame(frame)
+		container.place(relx=0.025,rely=0.1,relwidth=0.85,relheight=0.8)
+
+		style = ttk.Style()
+		style.configure("darkStyle.Treeview",font=('Arial', 14),fieldbackground="#121212",background="#121212", foreground="white", relief="flat",rowheight=30)
+		style.configure("darkStyle.Treeview.Heading", font=('Arial', 15,'bold'),rowheight=45,background="#121212", foreground="white", relief="flat")
+
+		self.tree = ttk.Treeview(columns=self.columnsToShow, show="headings",style="darkStyle.Treeview")
+
+		vsb = ttk.Scrollbar(orient="vertical",command=self.tree.yview)
+		hsb = ttk.Scrollbar(orient="horizontal",command=self.tree.xview)
+		self.tree.configure(yscrollcommand=vsb.set,xscrollcommand=hsb.set)
+		self.tree.grid(column=0, row=0, sticky='nsew', in_=container)
+		vsb.grid(column=1, row=0, sticky='ns', in_=container)
+		hsb.grid(column=0, row=1, sticky='ew', in_=container)
+		container.grid_columnconfigure(0, weight=1)
+		container.grid_rowconfigure(0, weight=1)
+
+		self.tree.tag_configure('odd',background='#171717')
+		self.tree.tag_configure('even',background='#121212')
+
+	def _build_tree(self,rows):
+		for col in self.columnsToShow:
+			self.tree.heading(col, text=col.title())
+			self.tree.column(col,width=40)
+
+		index = 0
+		for row in rows:
+			index += 1
+			if index%2 == 0:
+				self.tree.insert('', 'end', values=row,tags=('even'))
+			else:
+				self.tree.insert('', 'end', values=row,tags=('odd'))
+
+			for ix, val in enumerate(row):
+				self.tree.column(self.columnsToShow[ix], width=251)
+
+	def updateData(self,rows):
+		for i in self.tree.get_children():
+			self.tree.delete(i)
+
+		index = 0
+		for row in rows:
+			index += 1
+			if index%2 == 0:
+				self.tree.insert('', 'end', values=row,tags=('even'))
+			else:
+				self.tree.insert('', 'end', values=row,tags=('odd'))
+
+			for ix, val in enumerate(row):
+				self.tree.column(self.columnsToShow[ix], width=251)
+
+
 
 
 '''
@@ -178,7 +244,7 @@ def search(entry):
 global loginLogo,logo,searchIcon,userIcon
 
 # Login Screen
-def loginApp(reload):
+def login(reload):
 	root.title('Soundic Login')
 
 	global canvas
@@ -211,12 +277,12 @@ def loginApp(reload):
 	loginButton = tk.Button(text='Login',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
 	loginButton.place(relx=0.35,rely=0.68,relwidth=0.15)
 
-	registerButton = tk.Button(text='Register',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: register())
+	registerButton = tk.Button(text='Sign In',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: signin())
 	registerButton.place(relx=0.55,rely=0.68,relwidth=0.15)
 
 
 # Register Screen
-def register():
+def signin():
 	root.title('Soundic Register')
 
 	boxWidth = 0.25
@@ -304,8 +370,8 @@ def register():
 	loginButton = tk.Button(text='Create',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
 	loginButton.place(relx=0.35,rely=0.95,relwidth=0.15)
 
-	registerButton = tk.Button(text='Go Back',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: loginApp(reload=True))
-	registerButton.place(relx=0.55,rely=0.95,relwidth=0.15)
+	signInButton = tk.Button(text='Go Back',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: login(reload=True))
+	signInButton.place(relx=0.55,rely=0.95,relwidth=0.15)
 
 
 # Stream Screen
@@ -346,10 +412,9 @@ def mainApp(currentUsername):
 	loggedLabel = tk.Label(frame,text=' Logged in as  '+ currentUsername,font='Arial 12',fg='#2ecc71',bg='#101010')
 	loggedLabel.place(relx=0.62,rely=0.03)
 
-	# Temporary query output label
-	global outputLabel
-	outputLabel = tk.Label(frame,text=' Welcome to Soundic! ',fg='#ffffff',bg='#171717')
-	outputLabel.place(relx=0.25,rely=0.2,relwidth=0.5,relheight=0.6)
+	global outputTable
+	outputTable = MultiColumnListbox(frame,['Songs','Artists','Albums','Genres'],[])
+
 
 
 '''
@@ -367,7 +432,7 @@ logo = tk.PhotoImage(file='logo-soundic.png')
 searchIcon = tk.PhotoImage(file='icon-search.png')
 userIcon = tk.PhotoImage(file='icon-user.png')
 
-loginApp(reload=False)
+login(reload=False)
 root.mainloop()
 
 

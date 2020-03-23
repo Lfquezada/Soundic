@@ -127,20 +127,6 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 			login(reload=True)
 
 
-def testQuery():
-	# testing queries
-	query = """
-	SELECT *
-	FROM Album t
-	ORDER BY t.AlbumId DESC
-	LIMIT 5
-	"""
-
-	cursor.execute(query)
-	rows = cursor.fetchall()
-	print(rows)
-
-
 def logout():
 	login(reload=True)
 
@@ -486,10 +472,8 @@ def createAlbum(username,albumTitle,artistName):
 			newAlbumId = str(newAlbumId)
 
 			query = """
-
 			INSERT INTO Album (AlbumId,Title,ArtistId) 
 			VALUES (""" + newAlbumId + """,'""" + albumTitle + """',""" + artistId + """);
-
 			"""
 			cursor.execute(query)
 			connection.commit()
@@ -788,13 +772,258 @@ def deletePage(username):
 
 
 def delArtist(username):
-	pass
+	root.title('Delete Artist')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	regArtistButton = tk.Button(frame,text='Delete',command=lambda: deleteArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regArtistButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def deleteArtist(username,artistName):
+	artistNotFoundWarning['text'] = ''
+	
+	if len(artistName) > 0:
+
+		query = """
+		SELECT a.ArtistId
+		FROM Artist a
+		WHERE a.Name = '""" + artistName + """'
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			artistNotFoundWarning['text'] = 'Artist not found'
+		else:
+			#get the ArtistId
+			artistId = str(rows[0][0])
+
+			# TODO: delete the artist with artistid and all songs/albums with artistid
+			query = ""
+			cursor.execute(query)
+			connection.commit()
+			mainApp(username,isEmployee=True)
+	else:
+		artistNotFoundWarning['text'] = 'Information is missing'
+
 
 def delAlbum(username):
-	pass
+	root.title('Delete Album')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	albumTitleEntry.pack(side='top')
+
+	global albumNotFoundWarning
+	albumNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	albumNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer3.pack(side='top')
+
+	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regAlbumButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def deleteAlbum(username,albumTitle,artistName):
+	albumNotFoundWarning['text'] = ''
+	artistNotFoundWarning['text'] = ''
+
+	if len(albumTitle) > 0 and len(artistName) > 0:
+
+		query = """
+		SELECT a.ArtistId
+		FROM Artist a
+		WHERE a.Name = '""" + artistName + """'
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			artistNotFoundWarning['text'] = 'Artist not found'
+		else:
+			#get the ArtistId
+			artistId = str(rows[0][0])
+
+			query = """
+			SELECT a.AlbumId
+			FROM Album a
+			WHERE a.ArtistId = """ + artistId + """ AND a.Title = '""" + albumTitle + """'
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+			
+			if len(rows) <= 0:
+				albumNotFoundWarning['text'] = 'Album not found'
+			else:
+				albumId = str(rows[0][0])
+
+				# TODO: delete album with albumid and artistid and all songs in album
+				query = ""
+				cursor.execute(query)
+				connection.commit()
+				mainApp(username,isEmployee=True)
+	else:
+		albumNotFoundWarning['text'] = 'Some information is missing'
+		artistNotFoundWarning['text'] = 'Some information is missing'
+
 
 def delSong(username):
-	pass
+	root.title('Delete Song')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Song Name',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	songNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	songNameEntry.pack(side='top')
+
+	global songNotFoundWarning
+	songNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	songNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer3.pack(side='top')
+
+	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteSong(username,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regAlbumButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def deleteSong(username,trackName,artistName):
+	songNotFoundWarning['text'] = ''
+	artistNotFoundWarning['text'] = ''
+
+	if len(trackName) > 0 and len(artistName) > 0:
+
+		# CHECK IF TRACK NAME IS VALID
+		query = """
+		SELECT t.TrackId
+		FROM Track t
+		WHERE t.Name = '""" + trackName + """'
+		LIMIT 1
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			songNotFoundWarning['text'] = 'Song not found'
+		else:
+
+			# CHECK THE ARTIST MATCHES THE TRACK NAME
+			query = """
+			SELECT Track.TrackId
+			FROM Track 
+			JOIN Album ON Album.AlbumId = Track.AlbumId
+			JOIN Artist ON Artist.ArtistId = Album.ArtistId
+			WHERE Artist.Name = '""" + artistName + """' AND Track.Name = '""" + trackName + """'
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+
+			if len(rows) <= 0:
+				artistNotFoundWarning['text'] = 'Artist for track not found'
+			else:
+				trackId = rows[0][0]
+
+				# TODO: delete the song with trackId
+				query = ""
+				cursor.execute(query)
+				connection.commit()
+				mainApp(username,isEmployee=True)
+	else:
+		songNotFoundWarning['text'] = 'Some information is missing'
+		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
 def statsPage(username,isEmployee):
@@ -813,6 +1042,11 @@ def statsPage(username,isEmployee):
 	if isEmployee:
 		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
 		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacerTop = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Stats',font='Arial 40 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
 
 	# Col 1
 	title1 = 'Stats 1'

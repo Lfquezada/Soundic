@@ -21,7 +21,7 @@ cursor = connection.cursor()
 '''
 def authenticate(username,password):
 
-	if username == 'masteruser' and password == 'masterpass':
+	if username == '' and password == '':
 		confirmationLabel['text'] = 'Login Successful'
 		confirmationLabel['fg'] = '#2ecc71'
 		mainApp('testUser',isEmployee=True)
@@ -125,6 +125,287 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 			cursor.execute(query)
 			connection.commit()
 			login(reload=True)
+
+
+def testQuery():
+	# testing queries
+	query = """
+	SELECT *
+	FROM Album t
+	ORDER BY t.AlbumId DESC
+	LIMIT 5
+	"""
+
+	cursor.execute(query)
+	rows = cursor.fetchall()
+	print(rows)
+
+
+def logout():
+	login(reload=True)
+
+
+def showProfile(username,isEmployee):
+
+	# Set up window
+	profileWindow = tk.Tk()
+	windowTitle = username + "'s Profile"
+	profileWindow.title(windowTitle)
+	canvas2 = tk.Canvas(profileWindow,height=125,width=300,bg='#101010')
+	canvas2.pack()
+	frame2 = tk.Frame(profileWindow,bg='#121212')
+	frame2.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	if isEmployee:
+		query = """
+		SELECT e.EmployeeId, e.FirstName, e.LastName
+		FROM Employee e
+		WHERE e.username = '""" + username + """'
+		"""
+	else:
+		query = """
+		SELECT c.CustomerId, c.FirstName, c.LastName
+		FROM Customer c
+		WHERE c.username = '""" + username + """'
+		"""
+
+	cursor.execute(query)
+	rows = cursor.fetchall()
+
+	if len(rows) > 0:
+		spacer = tk.Label(frame2,text = ' ',fg='#ffffff',bg='#121212')
+		spacer.pack(side='top')
+
+		userIdLabel = tk.Label(frame2,text = 'User ID: ' + str(rows[0][0]),fg='#ffffff',bg='#121212')
+		userIdLabel.pack(side='top')
+
+		userFNLabel = tk.Label(frame2,text = 'First Name: ' + str(rows[0][1]),fg='#ffffff',bg='#121212')
+		userFNLabel.pack(side='top')
+
+		userLNLabel = tk.Label(frame2,text = 'Last Name: ' + str(rows[0][2]),fg='#ffffff',bg='#121212')
+		userLNLabel.pack(side='top')
+
+
+def registerPage(username):
+	root.title('Register')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Register',font='Arial 41 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
+	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacer1.pack(side='top')
+
+	regArtistButton = tk.Button(frame,text='Artist',command=lambda: registerArtist(username),width=20,height=2,fg='#575757')
+	regArtistButton.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer2.pack(side='top')
+
+	regAlbumButton = tk.Button(frame,text='Album',command=lambda: registerAlbum(username),width=20,height=2,fg='#575757')
+	regAlbumButton.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer3.pack(side='top')
+
+	regSongButton = tk.Button(frame,text='Song',command=lambda: registerSong(username),width=20,height=2,fg='#575757')
+	regSongButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def registerArtist(username):
+	root.title('Register Artist')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global registerArtistWarning
+	registerArtistWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	registerArtistWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	regArtistButton = tk.Button(frame,text='Register',command=lambda: createArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regArtistButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def registerAlbum(username):
+	root.title('Register Album')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	albumTitleEntry.pack(side='top')
+
+	global registerAlbumWarning
+	registerAlbumWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	registerAlbumWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer3.pack(side='top')
+
+	regAlbumButton = tk.Button(frame,text='Register',command=lambda: createAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regAlbumButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def registerSong(username):
+	root.title('Register Song')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	boxWidth = 0.28
+	col1Xpos = 0.23
+
+	instruction1 = tk.Label(frame,text = 'Enter Song Name *',fg='#ffffff',bg='#121212')
+	instruction1.place(relx=col1Xpos,rely=0.1)
+	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	trackNameEntry.place(relx=col1Xpos,rely=0.13,relwidth=boxWidth)
+
+	instruction2 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
+	instruction2.place(relx=col1Xpos,rely=0.2)
+	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	albumTitleEntry.place(relx=col1Xpos,rely=0.23,relwidth=boxWidth)
+
+	global albumNotFoundWarning
+	albumNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	albumNotFoundWarning.place(relx=col1Xpos,rely=0.27)
+
+	instruction3 = tk.Label(frame,text = 'Enter Media Type *',fg='#ffffff',bg='#121212')
+	instruction3.place(relx=col1Xpos,rely=0.3)
+	mediaTypeEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	mediaTypeEntry.place(relx=col1Xpos,rely=0.33,relwidth=boxWidth)
+
+	global mediaTypeNotFoundWarning
+	mediaTypeNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	mediaTypeNotFoundWarning.place(relx=col1Xpos,rely=0.37)
+
+	instruction4 = tk.Label(frame,text = 'Enter Genre',fg='#ffffff',bg='#121212')
+	instruction4.place(relx=col1Xpos,rely=0.4)
+	genreEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	genreEntry.place(relx=col1Xpos,rely=0.43,relwidth=boxWidth)
+
+	global genreNotFoundWarning
+	genreNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	genreNotFoundWarning.place(relx=col1Xpos,rely=0.47)
+
+	instruction5 = tk.Label(frame,text = 'Enter Composer',fg='#ffffff',bg='#121212')
+	instruction5.place(relx=col1Xpos,rely=0.5)
+	composerEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	composerEntry.place(relx=col1Xpos,rely=0.53,relwidth=boxWidth)
+
+	# Col 2
+
+	instruction6 = tk.Label(frame,text = 'Enter Milliseconds *',fg='#ffffff',bg='#121212')
+	instruction6.place(relx=0.55,rely=0.1)
+	millisecEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	millisecEntry.place(relx=0.55,rely=0.13)
+
+	global millisecErrorWarning
+	millisecErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	millisecErrorWarning.place(relx=0.55,rely=0.17)
+
+	instruction7 = tk.Label(frame,text = 'Enter Bytes',fg='#ffffff',bg='#121212')
+	instruction7.place(relx=0.55,rely=0.2)
+	bytesEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	bytesEntry.place(relx=0.55,rely=0.23)
+
+	global bytesErrorWarning
+	bytesErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	bytesErrorWarning.place(relx=0.55,rely=0.27)
+
+	instruction8 = tk.Label(frame,text = 'Enter Unit Price *',fg='#ffffff',bg='#121212')
+	instruction8.place(relx=0.55,rely=0.3)
+	unitPriceEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	unitPriceEntry.place(relx=0.55,rely=0.33)
+
+	global unitPriceErrorWarning
+	unitPriceErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	unitPriceErrorWarning.place(relx=0.55,rely=0.37)
+
+	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
+	regTrackButton.place(relx=0.55,rely=0.45)
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
 
 
 def createArtist(username,artistName):
@@ -317,73 +598,8 @@ def createTrack(username,trackName,albumTitle,mediaType,genreName,composer,milli
 						millisecErrorWarning['text'] = 'Millisecongs must be an integer'
 
 
-
-
-
-
-
-def testQuery():
-	# testing queries
-	query = """
-	SELECT *
-	FROM Album t
-	ORDER BY t.AlbumId DESC
-	LIMIT 1
-	"""
-
-	cursor.execute(query)
-	rows = cursor.fetchall()
-	for tuple in rows:
-		print(tuple)
-
-
-def logout():
-	login(reload=True)
-
-
-def showProfile(username,isEmployee):
-
-	# Set up window
-	profileWindow = tk.Tk()
-	windowTitle = username + "'s Profile"
-	profileWindow.title(windowTitle)
-	canvas2 = tk.Canvas(profileWindow,height=125,width=300,bg='#101010')
-	canvas2.pack()
-	frame2 = tk.Frame(profileWindow,bg='#121212')
-	frame2.place(relx=0,rely=0,relwidth=1,relheight=1)
-
-	if isEmployee:
-		query = """
-		SELECT e.EmployeeId, e.FirstName, e.LastName
-		FROM Employee e
-		WHERE e.username = '""" + username + """'
-		"""
-	else:
-		query = """
-		SELECT c.CustomerId, c.FirstName, c.LastName
-		FROM Customer c
-		WHERE c.username = '""" + username + """'
-		"""
-
-	cursor.execute(query)
-	rows = cursor.fetchall()
-
-	if len(rows) > 0:
-		spacer = tk.Label(frame2,text = ' ',fg='#ffffff',bg='#121212')
-		spacer.pack(side='top')
-
-		userIdLabel = tk.Label(frame2,text = 'User ID: ' + str(rows[0][0]),fg='#ffffff',bg='#121212')
-		userIdLabel.pack(side='top')
-
-		userFNLabel = tk.Label(frame2,text = 'First Name: ' + str(rows[0][1]),fg='#ffffff',bg='#121212')
-		userFNLabel.pack(side='top')
-
-		userLNLabel = tk.Label(frame2,text = 'Last Name: ' + str(rows[0][2]),fg='#ffffff',bg='#121212')
-		userLNLabel.pack(side='top')
-
-
-def register(username):
-	root.title('Register')
+def inactivateSongPage(username):
+	root.title('Inactivate Song')
 
 	global canvas
 	canvas.destroy()
@@ -401,90 +617,14 @@ def register(username):
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
 
-	regArtistButton = tk.Button(frame,text='Artist',command=lambda: registerArtist(username),width=20,height=2,fg='#575757')
-	regArtistButton.pack(side='top')
-
-	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
-	spacer2.pack(side='top')
-
-	regAlbumButton = tk.Button(frame,text='Album',command=lambda: registerAlbum(username),width=20,height=2,fg='#575757')
-	regAlbumButton.pack(side='top')
-
-	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
-	spacer3.pack(side='top')
-
-	regSongButton = tk.Button(frame,text='Song',command=lambda: registerSong(username),width=20,height=2,fg='#575757')
-	regSongButton.pack(side='top')
-
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
-	returnToAppButton.pack(side='bottom')
-
-
-def registerArtist(username):
-	root.title('Register Artist')
-
-	global canvas
-	canvas.destroy()
-	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
-	canvas.pack()
-	frame = tk.Frame(root,bg='#121212')
-	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
-
-	# Soundic Logo
-	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
-	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
-
-	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
-	spacer1.pack(side='top')
-
-	instruction1 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction1 = tk.Label(frame,text = 'Enter Song Name',fg='#ffffff',bg='#121212')
 	instruction1.pack(side='top')
-	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	artistNameEntry.pack(side='top')
+	songNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	songNameEntry.pack(side='top')
 
-	global registerArtistWarning
-	registerArtistWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
-	registerArtistWarning.pack(side='top')
-
-	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
-	spacer2.pack(side='top')
-
-	regArtistButton = tk.Button(frame,text='Register',command=lambda: createArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
-	regArtistButton.pack(side='top')
-
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
-	returnToAppButton.pack(side='bottom')
-
-
-def registerAlbum(username):
-	root.title('Register Album')
-
-	global canvas
-	canvas.destroy()
-	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
-	canvas.pack()
-	frame = tk.Frame(root,bg='#121212')
-	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
-
-	# Soundic Logo
-	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
-	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
-
-	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
-	spacer1.pack(side='top')
-
-	instruction1 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
-	instruction1.pack(side='top')
-	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	albumTitleEntry.pack(side='top')
-
-	global registerAlbumWarning
-	registerAlbumWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
-	registerAlbumWarning.pack(side='top')
+	global songNotFoundWarning
+	songNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	songNotFoundWarning.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer2.pack(side='top')
@@ -495,21 +635,66 @@ def registerAlbum(username):
 	artistNameEntry.pack(side='top')
 
 	global artistNotFoundWarning
-	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	artistNotFoundWarning.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Register',command=lambda: createAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
-	regAlbumButton.pack(side='top')
+	inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSong(username,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	inactivateButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
 	returnToAppButton.pack(side='bottom')
 
 
-def registerSong(username):
-	root.title('Register Song')
+def inactivateSong(username,trackName,artistName):
+	songNotFoundWarning['text'] = ''
+	artistNotFoundWarning['text'] = ''
+
+	if len(trackName) > 0 and len(artistName) > 0:
+
+		# CHECK IF TRACK NAME IS VALID
+		query = """
+		SELECT t.TrackId
+		FROM Track t
+		WHERE t.Name = '""" + trackName + """'
+		LIMIT 1
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			songNotFoundWarning['text'] = 'Song not found'
+		else:
+
+			# CHECK THE ARTIST MATCHES THE TRACK NAME
+			query = """
+			SELECT Track.TrackId
+			FROM Track 
+			JOIN Album ON Album.AlbumId = Track.AlbumId
+			JOIN Artist ON Artist.ArtistId = Album.ArtistId
+			WHERE Artist.Name = '""" + artistName + """' AND Track.Name = '""" + trackName + """'
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+
+			if len(rows) <= 0:
+				artistNotFoundWarning['text'] = 'Artist for track not found'
+			else:
+				# GET THE UNIQUE TRACK ID AND SET active TO false
+				trackId = rows[0][0]
+				query = "UPDATE Track SET Active = false WHERE TrackId = " + str(trackId) + ""
+				cursor.execute(query)
+				connection.commit()
+				mainApp(username,isEmployee=True)
+	else:
+		songNotFoundWarning['text'] = 'Some information is missing'
+		artistNotFoundWarning['text'] = 'Some information is missing'
+
+
+def modifyPage(username):
+	root.title('Modify')
 
 	global canvas
 	canvas.destroy()
@@ -524,76 +709,259 @@ def registerSong(username):
 	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
 	adminLabel.place(relx=0.935,rely=0.07)
 
-	instruction1 = tk.Label(frame,text = 'Enter Song Name *',fg='#ffffff',bg='#121212')
-	instruction1.place(relx=0.25,rely=0.1)
-	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	trackNameEntry.place(relx=0.25,rely=0.13)
+	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Modify',font='Arial 41 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
+	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacer1.pack(side='top')
 
-	instruction2 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
-	instruction2.place(relx=0.25,rely=0.2)
-	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	albumTitleEntry.place(relx=0.25,rely=0.23)
+	modArtistButton = tk.Button(frame,text='Artist',command=lambda: modArtist(username),width=20,height=2,fg='#575757')
+	modArtistButton.pack(side='top')
 
-	global albumNotFoundWarning
-	albumNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	albumNotFoundWarning.place(relx=0.25,rely=0.27)
+	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer2.pack(side='top')
 
-	instruction3 = tk.Label(frame,text = 'Enter Media Type *',fg='#ffffff',bg='#121212')
-	instruction3.place(relx=0.25,rely=0.3)
-	mediaTypeEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	mediaTypeEntry.place(relx=0.25,rely=0.33)
+	modAlbumButton = tk.Button(frame,text='Album',command=lambda: modAlbum(username),width=20,height=2,fg='#575757')
+	modAlbumButton.pack(side='top')
 
-	global mediaTypeNotFoundWarning
-	mediaTypeNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	mediaTypeNotFoundWarning.place(relx=0.25,rely=0.37)
+	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer3.pack(side='top')
 
-	instruction4 = tk.Label(frame,text = 'Enter Genre',fg='#ffffff',bg='#121212')
-	instruction4.place(relx=0.25,rely=0.4)
-	genreEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	genreEntry.place(relx=0.25,rely=0.43)
+	modSongButton = tk.Button(frame,text='Song',command=lambda: modSong(username),width=20,height=2,fg='#575757')
+	modSongButton.pack(side='top')
 
-	global genreNotFoundWarning
-	genreNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	genreNotFoundWarning.place(relx=0.25,rely=0.47)
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
 
-	instruction5 = tk.Label(frame,text = 'Enter Composer',fg='#ffffff',bg='#121212')
-	instruction5.place(relx=0.25,rely=0.5)
-	composerEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	composerEntry.place(relx=0.25,rely=0.53)
+
+def modArtist(username):
+	pass
+
+def modAlbum(username):
+	pass
+
+def modSong(username):
+	pass
+
+
+def deletePage(username):
+	root.title('Delete')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Delete',font='Arial 41 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
+	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacer1.pack(side='top')
+
+	delArtistButton = tk.Button(frame,text='Artist',command=lambda: delArtist(username),width=20,height=2,fg='#575757')
+	delArtistButton.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer2.pack(side='top')
+
+	delAlbumButton = tk.Button(frame,text='Album',command=lambda: delAlbum(username),width=20,height=2,fg='#575757')
+	delAlbumButton.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer3.pack(side='top')
+
+	delSongButton = tk.Button(frame,text='Song',command=lambda: delSong(username),width=20,height=2,fg='#575757')
+	delSongButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def delArtist(username):
+	pass
+
+def delAlbum(username):
+	pass
+
+def delSong(username):
+	pass
+
+
+def statsPage(username,isEmployee):
+	root.title('Soundic Stats')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	# Col 1
+	title1 = 'Stats 1'
+	stats1Button = tk.Button(frame,text=title1,command=lambda: displayStats(username,isEmployee,1,title1),width=40,height=2,fg='#575757')
+	stats1Button.place(relx=0.1,rely=0.2)
+
+	title2 = 'Genres with the most songs'
+	stats2Button = tk.Button(frame,text=title2,command=lambda: displayStats(username,isEmployee,2,title2),width=40,height=2,fg='#575757')
+	stats2Button.place(relx=0.1,rely=0.35)
+
+	title3 = 'Artists with the most albums'
+	stats3Button = tk.Button(frame,text=title3,command=lambda: displayStats(username,isEmployee,3,title3),width=40,height=2,fg='#575757')
+	stats3Button.place(relx=0.1,rely=0.5)
+
+	title4 = 'Longest songs'
+	stats4Button = tk.Button(frame,text=title4,command=lambda: displayStats(username,isEmployee,4,title4),width=40,height=2,fg='#575757')
+	stats4Button.place(relx=0.1,rely=0.65)
 
 	# Col 2
+	title5 = 'Stats 5'
+	stats5Button = tk.Button(frame,text=title5,command=lambda: displayStats(username,isEmployee,5,title5),width=40,height=2,fg='#575757')
+	stats5Button.place(relx=0.6,rely=0.2)
 
-	instruction6 = tk.Label(frame,text = 'Enter Milliseconds *',fg='#ffffff',bg='#121212')
-	instruction6.place(relx=0.55,rely=0.1)
-	millisecEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	millisecEntry.place(relx=0.55,rely=0.13)
+	title6 = 'Average song duration per genre'
+	stats6Button = tk.Button(frame,text=title6,command=lambda: displayStats(username,isEmployee,6,title6),width=40,height=2,fg='#575757')
+	stats6Button.place(relx=0.6,rely=0.35)
 
-	global millisecErrorWarning
-	millisecErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	millisecErrorWarning.place(relx=0.55,rely=0.17)
+	title7 = 'Stats 7'
+	stats7Button = tk.Button(frame,text=title7,command=lambda: displayStats(username,isEmployee,7,title7),width=40,height=2,fg='#575757')
+	stats7Button.place(relx=0.6,rely=0.5)
 
-	instruction7 = tk.Label(frame,text = 'Enter Bytes',fg='#ffffff',bg='#121212')
-	instruction7.place(relx=0.55,rely=0.2)
-	bytesEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	bytesEntry.place(relx=0.55,rely=0.23)
+	title8 = 'Most collaborative artists'
+	stats8Button = tk.Button(frame,text=title8,command=lambda: displayStats(username,isEmployee,8,title8),width=40,height=2,fg='#575757')
+	stats8Button.place(relx=0.6,rely=0.65)
 
-	global bytesErrorWarning
-	bytesErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	bytesErrorWarning.place(relx=0.55,rely=0.27)
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
 
-	instruction8 = tk.Label(frame,text = 'Enter Unit Price *',fg='#ffffff',bg='#121212')
-	instruction8.place(relx=0.55,rely=0.3)
-	unitPriceEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	unitPriceEntry.place(relx=0.55,rely=0.33)
 
-	global unitPriceErrorWarning
-	unitPriceErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	unitPriceErrorWarning.place(relx=0.55,rely=0.37)
+def displayStats(username,isEmployee,num,title):
+	root.title('Soundic Stats')
 
-	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
-	regTrackButton.place(relx=0.55,rely=0.45)
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer1.pack(side='top')
+
+	titleLabel = tk.Label(frame,text=title,font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel.pack(side='top')
+
+	global statsTable
+
+	if num == 1:
+		statsTable = MultiColumnListbox(frame,[])
+		query = """
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 2:
+		statsTable = MultiColumnListbox(frame,['Genre','Song Count'])
+		query = """
+		SELECT genre.name, COUNT(genre.name) 
+		FROM track
+		JOIN genre on track.genreid = genre.genreid
+		GROUP BY genre.name, genre.genreid 
+		ORDER BY COUNT(genre.name) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 3:
+		statsTable = MultiColumnListbox(frame,['Artist','Album Count'])
+		query = """
+		SELECT artist.name,COUNT(artist.artistid)
+		FROM album
+		JOIN artist ON album.artistid = artist.artistid
+		WHERE artist.name NOT LIKE '%Feat.%'
+		GROUP BY artist.artistid
+		ORDER BY COUNT(artist.artistid) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 4:
+		statsTable = MultiColumnListbox(frame,['Song','Duration (min)','Artist'])
+		query = """
+		SELECT track.name, track.milliseconds/1000.0/60.0,artist.name
+		FROM track
+		JOIN album on track.albumid = album.albumid
+		JOIN artist on album.artistid = artist.artistid
+		ORDER BY track.milliseconds DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 5:
+		statsTable = MultiColumnListbox(frame,[])
+		query = """
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 6:
+		statsTable = MultiColumnListbox(frame,['Genre','Average Minutes'])
+		query = """
+		SELECT genre.name,(AVG(track.milliseconds)/1000)/60
+		FROM track
+		JOIN genre on track.genreid = genre.genreid
+		GROUP BY genre.name
+		ORDER BY ((AVG(track.milliseconds)/1000)/60) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 7:
+		statsTable = MultiColumnListbox(frame,[])
+		query = """
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 8:
+		statsTable = MultiColumnListbox(frame,['Artist','Collab Count'])
+		query = """
+		SELECT artist.name,COUNT(artist.artistid)
+		FROM album
+		JOIN artist ON album.artistid = artist.artistid
+		WHERE artist.name LIKE '%Feat.%'
+		GROUP BY artist.artistid
+		ORDER BY COUNT(artist.artistid) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
@@ -603,36 +971,28 @@ def search(entry):
 
 	if len(entry) > 0:
 
+		# We search in each all tables and unify de result
+		# searches are combined and displayed in the table for the user
+
 		query = """
-		SELECT Track.Name,Artist.Name,Album.Title,Genre.Name
-		FROM Track
-		JOIN Album ON Album.AlbumId = Track.AlbumId
-		JOIN Artist ON Artist.ArtistId = Album.ArtistId
-		JOIN Genre ON Genre.GenreId = Track.GenreId
-		WHERE Album.Title = '""" + entry + """'
+		SELECT r.trackName, r.artistName, r.albumTitle, r.genreName
+		FROM (
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Track.Name = '""" + entry + """'
+			UNION
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Artist.Name = '""" + entry + """'
+			UNION
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Album.Title = '""" + entry + """'
+			UNION
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Genre.Name = '""" + entry + """'
+		) r
+		WHERE r.Active = true
 		"""
-
 		cursor.execute(query)
-		rows = cursor.fetchall()
-
-		# Search for anything else (artist or track or genre)
-		if len(rows) == 0:
-
-			query = """
-			SELECT Track.Name,Artist.Name,Album.Title,Genre.Name
-			FROM Track
-			JOIN Album ON Album.AlbumId = Track.AlbumId
-			JOIN Artist ON Artist.ArtistId = Album.ArtistId
-			JOIN Genre ON Genre.GenreId = Track.GenreId
-			WHERE Artist.Name = '""" + entry + """' OR Track.Name = '""" + entry + """' OR Genre.Name = '""" + entry + """'
-			"""
-
-			cursor.execute(query)
-			rows = cursor.fetchall()
-		displaySearchResult(rows)
+		rowsSearch = cursor.fetchall()
+		displaySearchResult(rowsSearch)
 
 
-# Fill listboxes with the query result
+# Fill output Table with the query result
 def displaySearchResult(rows):
 	outputTable.updateData(rows)
 
@@ -662,10 +1022,10 @@ class MultiColumnListbox(object):
 		self.frame = frame
 		self.tree = None
 		self.columnsToShow = headings
-		self._setup_widgets(frame)
-		self._build_tree([])
+		self.setupWidgets(frame)
+		self.buildTree([])
 
-	def _setup_widgets(self,frame):
+	def setupWidgets(self,frame):
 		container = ttk.Frame(frame)
 		container.place(relx=0.025,rely=0.1,relwidth=0.85,relheight=0.8)
 
@@ -687,7 +1047,7 @@ class MultiColumnListbox(object):
 		self.tree.tag_configure('odd',background='#171717')
 		self.tree.tag_configure('even',background='#121212')
 
-	def _build_tree(self,rows):
+	def buildTree(self,rows):
 		for col in self.columnsToShow:
 			self.tree.heading(col, text=col.title())
 			self.tree.column(col,width=40)
@@ -701,7 +1061,7 @@ class MultiColumnListbox(object):
 				self.tree.insert('', 'end', values=row,tags=('odd'))
 
 			for ix, val in enumerate(row):
-				self.tree.column(self.columnsToShow[ix], width=251)
+				self.tree.column(self.columnsToShow[ix], width=int(1004/len(self.columnsToShow)))
 
 	def updateData(self,rows):
 		for i in self.tree.get_children():
@@ -716,7 +1076,7 @@ class MultiColumnListbox(object):
 				self.tree.insert('', 'end', values=row,tags=('odd'))
 
 			for ix, val in enumerate(row):
-				self.tree.column(self.columnsToShow[ix], width=251)
+				self.tree.column(self.columnsToShow[ix], width=int(1004/len(self.columnsToShow)))
 
 
 
@@ -888,20 +1248,24 @@ def mainApp(currentUsername,isEmployee):
 		manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 14 bold',fg='#ffffff',bg='#101010')
 		manageLabel.place(relx=0.895,rely=0.23)
 
-		registerButton = tk.Button(frame,text='Register',command=lambda: register(currentUsername),width=10,height=2,fg='#575757')
+		registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername),width=10,height=2,fg='#575757')
 		registerButton.place(relx=0.9,rely=0.3)
 
-		inactivateButton = tk.Button(frame,text='Inactive',command=testQuery,width=10,height=2,fg='#575757')
+		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername),width=10,height=2,fg='#575757')
 		inactivateButton.place(relx=0.9,rely=0.4)
 
-		modifyButton = tk.Button(frame,text='Modify',command=testQuery,width=10,height=2,fg='#575757')
+		modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername),width=10,height=2,fg='#575757')
 		modifyButton.place(relx=0.9,rely=0.5)
 
-		deleteButton = tk.Button(frame,text='Delete',command=testQuery,width=10,height=2,fg='#575757')
+		deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername),width=10,height=2,fg='#575757')
 		deleteButton.place(relx=0.9,rely=0.6)
 
-		statsButton = tk.Button(frame,text='Stats',command=testQuery,width=10,height=2,fg='#575757')
+		statsButton = tk.Button(frame,text='Stats',command=lambda: statsPage(currentUsername,True),width=10,height=2,fg='#575757')
 		statsButton.place(relx=0.9,rely=0.7)
+	else:
+		# Customers can view stats
+		statsButton = tk.Button(frame,text='Stats',command=lambda: statsPage(currentUsername,False),width=10,height=2,fg='#575757')
+		statsButton.pack(side='right')
 
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
@@ -920,11 +1284,11 @@ def mainApp(currentUsername,isEmployee):
 
 	# Profile Button
 	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: showProfile(currentUsername,isEmployee))
-	profileButton.place(relx=0.75,rely=0.02,relwidth=0.025,relheight=0.042)
+	profileButton.place(relx=0.6,rely=0.02,relwidth=0.025,relheight=0.042)
 
 	# Logged in Label
 	loggedLabel = tk.Label(frame,text=' Logged in as  '+ currentUsername,font='Arial 12',fg='#2ecc71',bg='#101010')
-	loggedLabel.place(relx=0.58,rely=0.03)
+	loggedLabel.place(relx=0.65,rely=0.03)
 
 	global outputTable
 	outputTable = MultiColumnListbox(frame,['Songs','Artists','Albums','Genres'])

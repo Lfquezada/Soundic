@@ -1,0 +1,3 @@
+
+ALTER TABLE Track ADD COLUMN Active BOOLEAN;
+UPDATE Track SET Active=TRUE;

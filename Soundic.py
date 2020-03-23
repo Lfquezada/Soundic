@@ -172,7 +172,7 @@ def showProfile(username,isEmployee):
 		userLNLabel.pack(side='top')
 
 
-def registerPage(username):
+def registerPage(username,isEmployee):
 	root.title('Register')
 
 	global canvas
@@ -185,8 +185,9 @@ def registerPage(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacerTop.pack(side='top')
@@ -195,26 +196,26 @@ def registerPage(username):
 	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacer1.pack(side='top')
 
-	regArtistButton = tk.Button(frame,text='Artist',command=lambda: registerArtist(username),width=20,height=2,fg='#575757')
+	regArtistButton = tk.Button(frame,text='Artist',command=lambda: registerArtist(username,isEmployee),width=20,height=2,fg='#575757')
 	regArtistButton.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer2.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Album',command=lambda: registerAlbum(username),width=20,height=2,fg='#575757')
+	regAlbumButton = tk.Button(frame,text='Album',command=lambda: registerAlbum(username,isEmployee),width=20,height=2,fg='#575757')
 	regAlbumButton.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	regSongButton = tk.Button(frame,text='Song',command=lambda: registerSong(username),width=20,height=2,fg='#575757')
+	regSongButton = tk.Button(frame,text='Song',command=lambda: registerSong(username,isEmployee),width=20,height=2,fg='#575757')
 	regSongButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def registerArtist(username):
+def registerArtist(username,isEmployee):
 	root.title('Register Artist')
 
 	global canvas
@@ -227,8 +228,9 @@ def registerArtist(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -248,11 +250,11 @@ def registerArtist(username):
 	regArtistButton = tk.Button(frame,text='Register',command=lambda: createArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
 	regArtistButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def registerAlbum(username):
+def registerAlbum(username,isEmployee):
 	root.title('Register Album')
 
 	global canvas
@@ -265,8 +267,9 @@ def registerAlbum(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -298,11 +301,11 @@ def registerAlbum(username):
 	regAlbumButton = tk.Button(frame,text='Register',command=lambda: createAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
 	regAlbumButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def registerSong(username):
+def registerSong(username,isEmployee):
 	root.title('Register Song')
 
 	global canvas
@@ -315,8 +318,9 @@ def registerSong(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	boxWidth = 0.28
 	col1Xpos = 0.23
@@ -390,7 +394,7 @@ def registerSong(username):
 	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
 	regTrackButton.place(relx=0.55,rely=0.45)
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
@@ -1045,11 +1049,11 @@ def statsPage(username,isEmployee):
 
 	spacerTop = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacerTop.pack(side='top')
-	pageTitleLabel = tk.Label(frame,text='Stats',font='Arial 40 bold',bg='#121212',fg='white')
+	pageTitleLabel = tk.Label(frame,text='Statistics',font='Arial 40 bold',bg='#121212',fg='white')
 	pageTitleLabel.pack(side='top')
 
 	# Col 1
-	title1 = 'Stats 1'
+	title1 = 'Artists with the most albums'
 	stats1Button = tk.Button(frame,text=title1,command=lambda: displayStats(username,isEmployee,1,title1),width=40,height=2,fg='#575757')
 	stats1Button.place(relx=0.1,rely=0.2)
 
@@ -1057,7 +1061,7 @@ def statsPage(username,isEmployee):
 	stats2Button = tk.Button(frame,text=title2,command=lambda: displayStats(username,isEmployee,2,title2),width=40,height=2,fg='#575757')
 	stats2Button.place(relx=0.1,rely=0.35)
 
-	title3 = 'Artists with the most albums'
+	title3 = 'Playlist duration'
 	stats3Button = tk.Button(frame,text=title3,command=lambda: displayStats(username,isEmployee,3,title3),width=40,height=2,fg='#575757')
 	stats3Button.place(relx=0.1,rely=0.5)
 
@@ -1066,7 +1070,7 @@ def statsPage(username,isEmployee):
 	stats4Button.place(relx=0.1,rely=0.65)
 
 	# Col 2
-	title5 = 'Stats 5'
+	title5 = 'Users with the most registered songs'
 	stats5Button = tk.Button(frame,text=title5,command=lambda: displayStats(username,isEmployee,5,title5),width=40,height=2,fg='#575757')
 	stats5Button.place(relx=0.6,rely=0.2)
 
@@ -1074,11 +1078,11 @@ def statsPage(username,isEmployee):
 	stats6Button = tk.Button(frame,text=title6,command=lambda: displayStats(username,isEmployee,6,title6),width=40,height=2,fg='#575757')
 	stats6Button.place(relx=0.6,rely=0.35)
 
-	title7 = 'Stats 7'
+	title7 = 'Different Artists per Playlist'
 	stats7Button = tk.Button(frame,text=title7,command=lambda: displayStats(username,isEmployee,7,title7),width=40,height=2,fg='#575757')
 	stats7Button.place(relx=0.6,rely=0.5)
 
-	title8 = 'Most collaborative artists'
+	title8 = 'Most diverse artists'
 	stats8Button = tk.Button(frame,text=title8,command=lambda: displayStats(username,isEmployee,8,title8),width=40,height=2,fg='#575757')
 	stats8Button.place(relx=0.6,rely=0.65)
 
@@ -1087,7 +1091,7 @@ def statsPage(username,isEmployee):
 
 
 def displayStats(username,isEmployee,num,title):
-	root.title('Soundic Stats')
+	root.title('Soundic Statistics')
 
 	global canvas
 	canvas.destroy()
@@ -1112,8 +1116,14 @@ def displayStats(username,isEmployee,num,title):
 	global statsTable
 
 	if num == 1:
-		statsTable = MultiColumnListbox(frame,[])
+		statsTable = MultiColumnListbox(frame,['Artist','Album Count'])
 		query = """
+		SELECT artist.name,COUNT(artist.artistid)
+		FROM album
+		JOIN artist ON album.artistid = artist.artistid
+		GROUP BY artist.artistid
+		ORDER BY COUNT(artist.artistid) DESC
+		LIMIT 5
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
@@ -1126,19 +1136,14 @@ def displayStats(username,isEmployee,num,title):
 		JOIN genre on track.genreid = genre.genreid
 		GROUP BY genre.name, genre.genreid 
 		ORDER BY COUNT(genre.name) DESC
+		LIMIT 5
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 3:
-		statsTable = MultiColumnListbox(frame,['Artist','Album Count'])
+		statsTable = MultiColumnListbox(frame,['Playlist','Duration'])
 		query = """
-		SELECT artist.name,COUNT(artist.artistid)
-		FROM album
-		JOIN artist ON album.artistid = artist.artistid
-		WHERE artist.name NOT LIKE '%Feat.%'
-		GROUP BY artist.artistid
-		ORDER BY COUNT(artist.artistid) DESC
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
@@ -1151,12 +1156,13 @@ def displayStats(username,isEmployee,num,title):
 		JOIN album on track.albumid = album.albumid
 		JOIN artist on album.artistid = artist.artistid
 		ORDER BY track.milliseconds DESC
+		LIMIT 5
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 5:
-		statsTable = MultiColumnListbox(frame,[])
+		statsTable = MultiColumnListbox(frame,['User','Songs Registered'])
 		query = """
 		"""
 		cursor.execute(query)
@@ -1175,7 +1181,7 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 7:
-		statsTable = MultiColumnListbox(frame,[])
+		statsTable = MultiColumnListbox(frame,['Playlist','Artist Count'])
 		query = """
 		"""
 		cursor.execute(query)
@@ -1184,12 +1190,6 @@ def displayStats(username,isEmployee,num,title):
 	if num == 8:
 		statsTable = MultiColumnListbox(frame,['Artist','Collab Count'])
 		query = """
-		SELECT artist.name,COUNT(artist.artistid)
-		FROM album
-		JOIN artist ON album.artistid = artist.artistid
-		WHERE artist.name LIKE '%Feat.%'
-		GROUP BY artist.artistid
-		ORDER BY COUNT(artist.artistid) DESC
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
@@ -1477,14 +1477,13 @@ def mainApp(currentUsername,isEmployee):
 	logoutButton = tk.Button(frame,text='Logout',command=logout,width=10,height=1,fg='#575757')
 	logoutButton.pack(side='bottom')
 
+	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	manageLabel.place(relx=0.895,rely=0.23)
+	registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+	registerButton.place(relx=0.9,rely=0.3)
+
 	# Show admin options and commands
 	if isEmployee:
-		manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-		manageLabel.place(relx=0.895,rely=0.23)
-
-		registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername),width=10,height=2,fg='#575757')
-		registerButton.place(relx=0.9,rely=0.3)
-
 		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername),width=10,height=2,fg='#575757')
 		inactivateButton.place(relx=0.9,rely=0.4)
 
@@ -1494,12 +1493,13 @@ def mainApp(currentUsername,isEmployee):
 		deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername),width=10,height=2,fg='#575757')
 		deleteButton.place(relx=0.9,rely=0.6)
 
-		statsButton = tk.Button(frame,text='Stats',command=lambda: statsPage(currentUsername,True),width=10,height=2,fg='#575757')
+		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,True),width=10,height=2,fg='#575757')
 		statsButton.place(relx=0.9,rely=0.7)
 	else:
 		# Customers can view stats
-		statsButton = tk.Button(frame,text='Stats',command=lambda: statsPage(currentUsername,False),width=10,height=2,fg='#575757')
-		statsButton.pack(side='right')
+		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,False),width=10,height=2,fg='#575757')
+		statsButton.place(relx=0.9,rely=0.4)
+
 
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
@@ -1509,7 +1509,7 @@ def mainApp(currentUsername,isEmployee):
 		adminLabel.place(relx=0.935,rely=0.07)
 
 	# Search text field
-	searchEntry = tk.Entry(frame,text='search...',fg='#ffffff',bg='#171717')
+	searchEntry = tk.Entry(frame,text='Search',fg='#ffffff',bg='#171717')
 	searchEntry.place(relx=0.005,rely=0.01,relwidth=0.25,relheight=0.05)
 
 	# Search Button

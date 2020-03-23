@@ -21,9 +21,7 @@ cursor = connection.cursor()
 '''
 def authenticate(username,password):
 
-	if username == '' and password == '':
-		confirmationLabel['text'] = 'Login Successful'
-		confirmationLabel['fg'] = '#2ecc71'
+	if username == 'masteruser' and password == 'masterpass':
 		mainApp('testUser',isEmployee=True)
 
 	query = """
@@ -47,23 +45,16 @@ def authenticate(username,password):
 
 		if len(rows) == 0: # no username match was made so its an invalid username
 			confirmationLabel['text'] = 'Invalid username'
-			confirmationLabel['fg'] = '#e74c3c'
 		else:
 			if password == rows[0][0]:
-				confirmationLabel['text'] = 'Login Successful'
-				confirmationLabel['fg'] = '#2ecc71'
 				mainApp(username,isEmployee=True)
 			else:
 				confirmationLabel['text'] = 'Invalid password'
-				confirmationLabel['fg'] = '#e74c3c'
 	else:
 		if password == rows[0][0]:
-			confirmationLabel['text'] = 'Login Successful'
-			confirmationLabel['fg'] = '#2ecc71'
 			mainApp(username,isEmployee=False)
 		else:
 			confirmationLabel['text'] = 'Invalid password'
-			confirmationLabel['fg'] = '#e74c3c'
 
 
 def createUser(username,password,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email):
@@ -71,7 +62,6 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 	if len(firstName) <= 1 or len(lastName) <= 1 or len(username) <= 1 or len(password) <= 1 or len(username) > 10 or len(password) > 20:
 		# not a valid register, show a red warning
 		regConfLabel['text'] = 'Invalid data lenght'
-		regConfLabel['fg'] = '#e74c3c'
 	else:
 		# valid register but username may already exist
 
@@ -86,12 +76,8 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 		if len(rows) > 0:
 			# then username already exists, show red warning
 			regConfLabel['text'] = 'Username already exists'
-			regConfLabel['fg'] = '#e74c3c'
-
 		else:
 			# its a valid register with a unique username
-			regConfLabel['text'] = 'Successful Registration'
-			regConfLabel['fg'] = '#2ecc71'
 
 			# get the last custumer id added
 			query = """
@@ -241,13 +227,13 @@ def registerArtist(username,isEmployee):
 	artistNameEntry.pack(side='top')
 
 	global registerArtistWarning
-	registerArtistWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	registerArtistWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	registerArtistWarning.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer2.pack(side='top')
 
-	regArtistButton = tk.Button(frame,text='Register',command=lambda: createArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regArtistButton = tk.Button(frame,text='Register',command=lambda: createArtist(username,isEmployee,artistNameEntry.get()),width=15,height=2,fg='#575757')
 	regArtistButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
@@ -280,7 +266,7 @@ def registerAlbum(username,isEmployee):
 	albumTitleEntry.pack(side='top')
 
 	global registerAlbumWarning
-	registerAlbumWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	registerAlbumWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	registerAlbumWarning.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
@@ -292,13 +278,13 @@ def registerAlbum(username,isEmployee):
 	artistNameEntry.pack(side='top')
 
 	global artistNotFoundWarning
-	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	artistNotFoundWarning.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Register',command=lambda: createAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regAlbumButton = tk.Button(frame,text='Register',command=lambda: createAlbum(username,isEmployee,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
 	regAlbumButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
@@ -391,14 +377,14 @@ def registerSong(username,isEmployee):
 	unitPriceErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	unitPriceErrorWarning.place(relx=0.55,rely=0.37)
 
-	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
+	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,isEmployee,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
 	regTrackButton.place(relx=0.55,rely=0.45)
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def createArtist(username,artistName):
+def createArtist(username,isEmployee,artistName):
 	registerArtistWarning['text'] = ''
 
 	if len(artistName) > 0:
@@ -413,7 +399,6 @@ def createArtist(username,artistName):
 
 		if len(rows) > 0:
 			registerArtistWarning['text'] = 'Artist already exists'
-			registerArtistWarning['fg'] = '#e74c3c'
 		else:
 
 			# get the last ArtistId added and add 1 to make the new one
@@ -436,13 +421,12 @@ def createArtist(username,artistName):
 			"""
 			cursor.execute(query)
 			connection.commit()
-			mainApp(username,isEmployee=True)
+			mainApp(username,isEmployee)
 	else:
 		registerArtistWarning['text'] = 'Enter a name'
-		registerArtistWarning['fg'] = '#e74c3c'
 
 
-def createAlbum(username,albumTitle,artistName):
+def createAlbum(username,isEmployee,albumTitle,artistName):
 	registerAlbumWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
@@ -458,7 +442,6 @@ def createAlbum(username,albumTitle,artistName):
 
 		if len(rows) <= 0:
 			artistNotFoundWarning['text'] = 'Artist not found'
-			artistNotFoundWarning['fg'] = '#e74c3c'
 		else:
 			#get the ArtistId
 			artistId = str(rows[0][0])
@@ -481,15 +464,13 @@ def createAlbum(username,albumTitle,artistName):
 			"""
 			cursor.execute(query)
 			connection.commit()
-			mainApp(username,isEmployee=True)
+			mainApp(username,isEmployee)
 	else:
 		registerAlbumWarning['text'] = 'Some required field is empty'
-		registerAlbumWarning['fg'] = '#e74c3c'
 		artistNotFoundWarning['text'] = 'Some required field is empty'
-		artistNotFoundWarning['fg'] = '#e74c3c'
 
 
-def createTrack(username,trackName,albumTitle,mediaType,genreName,composer,millisec,bytes,unitPrice):
+def createTrack(username,isEmployee,trackName,albumTitle,mediaType,genreName,composer,millisec,bytes,unitPrice):
 
 	# Show nothing on all warnings (reset per click)
 	warnings = [albumNotFoundWarning,mediaTypeNotFoundWarning,genreNotFoundWarning,millisecErrorWarning,bytesErrorWarning,unitPriceErrorWarning]
@@ -571,12 +552,33 @@ def createTrack(username,trackName,albumTitle,mediaType,genreName,composer,milli
 								newTrackId = str(newTrackId)
 
 								query = """
-								INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice)
-								VALUES (""" + newTrackId + """,'""" + trackName + """',""" + str(albumId) + """,""" + str(mediaTypeId) + """,""" + str(genreId) + """,'""" + composer + """', """ + millisec + """, """ + bytes + """,""" + unitPrice + """);
+								INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice,Active)
+								VALUES (""" + newTrackId + """,'""" + trackName + """',""" + str(albumId) + """,""" + str(mediaTypeId) + """,""" + str(genreId) + """,'""" + composer + """', """ + millisec + """, """ + bytes + """,""" + unitPrice + """,true);
 								"""
 								cursor.execute(query)
 								connection.commit()
-								mainApp(username,isEmployee=True)
+
+								# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
+								if not isEmployee:
+									# get the customerid
+									query = """
+									SELECT c.CustomerId
+									FROM Customer c
+									WHERE c.username = '""" + username + """'
+									LIMIT 1
+									"""
+									cursor.execute(query)
+									rows = cursor.fetchall()
+									customerid = str(rows[0][0])
+
+									query = """
+									INSERT INTO track_register (TrackId, CustomerId)
+									VALUES (""" + newTrackId + """,""" + customerid + """);
+									"""
+									cursor.execute(query)
+									connection.commit()
+
+								mainApp(username,isEmployee)
 
 							else:
 								unitPriceErrorWarning['text'] = 'Unit price must be a number'
@@ -1352,7 +1354,7 @@ def login(reload):
 	password.place(relx=0.45,rely=0.48,relwidth=0.25,relheight=0.09)
 
 	global confirmationLabel
-	confirmationLabel = tk.Label(text = ' ',font='Arial 12',fg='#121212',bg='#121212')
+	confirmationLabel = tk.Label(text = ' ',font='Arial 12',bg='#121212',fg='#e74c3c')
 	confirmationLabel.place(relx=0.34,rely=0.78)
 
 	loginButton = tk.Button(text='Login',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
@@ -1447,7 +1449,7 @@ def signin():
 	email.place(relx=0.25,rely=0.85,relwidth=boxWidth,relheight=boxHeight)
 
 	global regConfLabel
-	regConfLabel = tk.Label(text = ' ',font='Arial 12',fg='#2ecc71',bg='#121212')
+	regConfLabel = tk.Label(text = ' ',font='Arial 12',bg='#121212',fg='#e74c3c')
 	regConfLabel.place(relx=0.7,rely=0.3)
 
 	loginButton = tk.Button(text='Create',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
@@ -1539,10 +1541,10 @@ root = tk.Tk()
 root.configure(background='black')
 
 # preload assets
-loginLogo = tk.PhotoImage(file='logo-login.png')
-logo = tk.PhotoImage(file='logo-soundic.png')
-searchIcon = tk.PhotoImage(file='icon-search.png')
-userIcon = tk.PhotoImage(file='icon-user.png')
+loginLogo = tk.PhotoImage(file='assets/logo-login.png')
+logo = tk.PhotoImage(file='assets/logo-soundic.png')
+searchIcon = tk.PhotoImage(file='assets/icon-search.png')
+userIcon = tk.PhotoImage(file='assets/icon-user.png')
 
 login(reload=False)
 root.mainloop()

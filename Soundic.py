@@ -1144,8 +1144,13 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 3:
-		statsTable = MultiColumnListbox(frame,['Playlist','Duration'])
+		statsTable = MultiColumnListbox(frame,['Playlist','Duration (Minutes)'])
 		query = """
+		SELECT playlist.name, (SUM(milliseconds)/60000)
+		FROM playlist
+		JOIN playlisttrack ON playlist.playlistid = playlisttrack.playlistid
+		JOIN track ON playlisttrack.trackid = track.trackid
+		GROUP BY playlist.name
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
@@ -1155,8 +1160,8 @@ def displayStats(username,isEmployee,num,title):
 		query = """
 		SELECT track.name, track.milliseconds/1000.0/60.0,artist.name
 		FROM track
-		JOIN album on track.albumid = album.albumid
-		JOIN artist on album.artistid = artist.artistid
+		JOIN album ON track.albumid = album.albumid
+		JOIN artist ON album.artistid = artist.artistid
 		ORDER BY track.milliseconds DESC
 		LIMIT 5
 		"""
@@ -1164,8 +1169,14 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 5:
-		statsTable = MultiColumnListbox(frame,['User','Songs Registered'])
+		statsTable = MultiColumnListbox(frame,['First Name','Last Name','Songs Registered'])
 		query = """
+		SELECT firstname, lastname, COUNT(trackid)
+		FROM track_register
+		JOIN customer ON track_register.customerid = customer.customerid
+		GROUP BY track_register.customerid,firstname,lastname
+		ORDER BY COUNT(trackid) DESC
+		LIMIT 5
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
@@ -1175,7 +1186,7 @@ def displayStats(username,isEmployee,num,title):
 		query = """
 		SELECT genre.name,(AVG(track.milliseconds)/1000)/60
 		FROM track
-		JOIN genre on track.genreid = genre.genreid
+		JOIN genre ON track.genreid = genre.genreid
 		GROUP BY genre.name
 		ORDER BY ((AVG(track.milliseconds)/1000)/60) DESC
 		"""
@@ -1185,13 +1196,27 @@ def displayStats(username,isEmployee,num,title):
 	if num == 7:
 		statsTable = MultiColumnListbox(frame,['Playlist','Artist Count'])
 		query = """
+		SELECT playlist.name, COUNT(DISTINCT artist.name)
+		FROM playlisttrack
+		JOIN playlist on playlisttrack.playlistid = playlist.playlistid
+		JOIN track on playlisttrack.trackid = track.trackid
+		JOIN album on track.albumid = album.albumid
+		JOIN artist on album.artistid = artist.artistid
+		GROUP BY playlist.name
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 8:
-		statsTable = MultiColumnListbox(frame,['Artist','Collab Count'])
+		statsTable = MultiColumnListbox(frame,['Artist','Genre Count'])
 		query = """
+		SELECT artist.name, COUNT(DISTINCT genreid)
+		FROM track
+		JOIN album on track.albumid = album.albumid
+		JOIN artist on album.artistid = artist.artistid
+		GROUP BY artist.name
+		ORDER BY COUNT(DISTINCT genreid) DESC
+		LIMIT 5
 		"""
 		cursor.execute(query)
 		rows = cursor.fetchall()

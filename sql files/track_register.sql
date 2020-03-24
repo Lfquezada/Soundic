@@ -1,8 +1,0 @@
-DROP TABLE IF EXISTS track_register;
-CREATE TABLE track_register 
-(
-   TrackId INT NOT NULL,
-   CustomerId INT NOT NULL,
-   FOREIGN KEY (TrackId) REFERENCES Track(TrackId) ON DELETE NO ACTION ON UPDATE NO ACTION,
-   FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE NO ACTION ON UPDATE NO ACTION
-);

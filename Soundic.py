@@ -838,8 +838,7 @@ def deleteArtist(username,isEmployee,artistName):
 			#get the ArtistId
 			artistId = str(rows[0][0])
 
-			# TODO: delete the artist with artistid and all songs/albums with artistid
-			query = ""
+			query = "DELETE FROM Artist WHERE ArtistId = "+ artistId +""
 			cursor.execute(query)
 			connection.commit()
 			mainApp(username,isEmployee)
@@ -932,7 +931,7 @@ def deleteAlbum(username,isEmployee,albumTitle,artistName):
 				albumId = str(rows[0][0])
 
 				# TODO: delete album with albumid and artistid and all songs in album
-				query = ""
+				query = "DELETE FROM Album WHERE AlbumId = "+ albumId +""
 				cursor.execute(query)
 				connection.commit()
 				mainApp(username,isEmployee)
@@ -954,8 +953,9 @@ def delSong(username,isEmployee):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -1025,10 +1025,9 @@ def deleteSong(username,isEmployee,trackName,artistName):
 			if len(rows) <= 0:
 				artistNotFoundWarning['text'] = 'Artist for track not found'
 			else:
-				trackId = rows[0][0]
+				trackId = str(rows[0][0])
 
-				# TODO: delete the song with trackId
-				query = ""
+				query = "DELETE FROM Track WHERE TrackId = "+ trackId +""
 				cursor.execute(query)
 				connection.commit()
 				mainApp(username,isEmployee)

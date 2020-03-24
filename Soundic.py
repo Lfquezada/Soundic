@@ -1382,16 +1382,16 @@ def login(reload):
 	confirmationLabel = tk.Label(text = ' ',font='Arial 12',bg='#121212',fg='#e74c3c')
 	confirmationLabel.place(relx=0.34,rely=0.78)
 
-	loginButton = tk.Button(text='Login',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
+	loginButton = tk.Button(text='Login',bg='white',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
 	loginButton.place(relx=0.35,rely=0.68,relwidth=0.15)
 
-	signInButton = tk.Button(text='Sign In',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: signin())
+	signInButton = tk.Button(text='Sign In',bg='white',borderwidth=0, highlightthickness=0,command=lambda: signUp())
 	signInButton.place(relx=0.55,rely=0.68,relwidth=0.15)
 
 
 # Sign in Screen
-def signin():
-	root.title('Soundic Sign In')
+def signUp():
+	root.title('Soundic Sign Up')
 
 	boxWidth = 0.25
 	boxHeight = 0.05
@@ -1477,10 +1477,10 @@ def signin():
 	regConfLabel = tk.Label(text = ' ',font='Arial 12',bg='#121212',fg='#e74c3c')
 	regConfLabel.place(relx=0.7,rely=0.3)
 
-	loginButton = tk.Button(text='Create',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
+	loginButton = tk.Button(text='Create',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
 	loginButton.place(relx=0.35,rely=0.95,relwidth=0.15)
 
-	signInButton = tk.Button(text='Go Back',bg='#121212',borderwidth=0, highlightthickness=0,command=lambda: login(reload=True))
+	signInButton = tk.Button(text='Go Back',borderwidth=0, highlightthickness=0,command=lambda: login(reload=True))
 	signInButton.place(relx=0.55,rely=0.95,relwidth=0.15)
 
 
@@ -1504,7 +1504,7 @@ def mainApp(currentUsername,isEmployee):
 	logoutButton = tk.Button(frame,text='Logout',command=logout,width=10,height=1,fg='#575757')
 	logoutButton.pack(side='bottom')
 
-	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 10 bold',fg='#ffffff',bg='#101010')
 	manageLabel.place(relx=0.895,rely=0.23)
 	registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 	registerButton.place(relx=0.9,rely=0.3)

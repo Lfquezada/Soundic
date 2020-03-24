@@ -21,7 +21,7 @@ cursor = connection.cursor()
 '''
 def authenticate(username,password):
 
-	if username == 'masteruser' and password == 'masterpass':
+	if username == '' and password == '':
 		mainApp('testUser',isEmployee=True)
 
 	query = """
@@ -588,7 +588,7 @@ def createTrack(username,isEmployee,trackName,albumTitle,mediaType,genreName,com
 						millisecErrorWarning['text'] = 'Millisecongs must be an integer'
 
 
-def inactivateSongPage(username):
+def inactivateSongPage(username,isEmployee):
 	root.title('Inactivate Song')
 
 	global canvas
@@ -601,8 +601,9 @@ def inactivateSongPage(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -631,14 +632,14 @@ def inactivateSongPage(username):
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSong(username,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSong(username,isEmployee,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
 	inactivateButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def inactivateSong(username,trackName,artistName):
+def inactivateSong(username,isEmployee,trackName,artistName):
 	songNotFoundWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
@@ -677,13 +678,13 @@ def inactivateSong(username,trackName,artistName):
 				query = "UPDATE Track SET Active = false WHERE TrackId = " + str(trackId) + ""
 				cursor.execute(query)
 				connection.commit()
-				mainApp(username,isEmployee=True)
+				mainApp(username,isEmployee)
 	else:
 		songNotFoundWarning['text'] = 'Some information is missing'
 		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
-def modifyPage(username):
+def modifyPage(username,isEmployee):
 	root.title('Modify')
 
 	global canvas
@@ -696,8 +697,9 @@ def modifyPage(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacerTop.pack(side='top')
@@ -706,36 +708,36 @@ def modifyPage(username):
 	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacer1.pack(side='top')
 
-	modArtistButton = tk.Button(frame,text='Artist',command=lambda: modArtist(username),width=20,height=2,fg='#575757')
+	modArtistButton = tk.Button(frame,text='Artist',command=lambda: modArtist(username,isEmployee),width=20,height=2,fg='#575757')
 	modArtistButton.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer2.pack(side='top')
 
-	modAlbumButton = tk.Button(frame,text='Album',command=lambda: modAlbum(username),width=20,height=2,fg='#575757')
+	modAlbumButton = tk.Button(frame,text='Album',command=lambda: modAlbum(username,isEmployee),width=20,height=2,fg='#575757')
 	modAlbumButton.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	modSongButton = tk.Button(frame,text='Song',command=lambda: modSong(username),width=20,height=2,fg='#575757')
+	modSongButton = tk.Button(frame,text='Song',command=lambda: modSong(username,isEmployee),width=20,height=2,fg='#575757')
 	modSongButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def modArtist(username):
+def modArtist(username,isEmployee):
 	pass
 
-def modAlbum(username):
+def modAlbum(username,isEmployee):
 	pass
 
-def modSong(username):
+def modSong(username,isEmployee):
 	pass
 
 
-def deletePage(username):
+def deletePage(username,isEmployee):
 	root.title('Delete')
 
 	global canvas
@@ -748,8 +750,9 @@ def deletePage(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacerTop.pack(side='top')
@@ -758,26 +761,26 @@ def deletePage(username):
 	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacer1.pack(side='top')
 
-	delArtistButton = tk.Button(frame,text='Artist',command=lambda: delArtist(username),width=20,height=2,fg='#575757')
+	delArtistButton = tk.Button(frame,text='Artist',command=lambda: delArtist(username,isEmployee),width=20,height=2,fg='#575757')
 	delArtistButton.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer2.pack(side='top')
 
-	delAlbumButton = tk.Button(frame,text='Album',command=lambda: delAlbum(username),width=20,height=2,fg='#575757')
+	delAlbumButton = tk.Button(frame,text='Album',command=lambda: delAlbum(username,isEmployee),width=20,height=2,fg='#575757')
 	delAlbumButton.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	delSongButton = tk.Button(frame,text='Song',command=lambda: delSong(username),width=20,height=2,fg='#575757')
+	delSongButton = tk.Button(frame,text='Song',command=lambda: delSong(username,isEmployee),width=20,height=2,fg='#575757')
 	delSongButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def delArtist(username):
+def delArtist(username,isEmployee):
 	root.title('Delete Artist')
 
 	global canvas
@@ -790,8 +793,9 @@ def delArtist(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -808,14 +812,14 @@ def delArtist(username):
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer2.pack(side='top')
 
-	regArtistButton = tk.Button(frame,text='Delete',command=lambda: deleteArtist(username,artistNameEntry.get()),width=15,height=2,fg='#575757')
-	regArtistButton.pack(side='top')
+	delArtistButton = tk.Button(frame,text='Delete',command=lambda: deleteArtist(username,isEmployee,artistNameEntry.get()),width=15,height=2,fg='#575757')
+	delArtistButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def deleteArtist(username,artistName):
+def deleteArtist(username,isEmployee,artistName):
 	artistNotFoundWarning['text'] = ''
 	
 	if len(artistName) > 0:
@@ -838,12 +842,12 @@ def deleteArtist(username,artistName):
 			query = ""
 			cursor.execute(query)
 			connection.commit()
-			mainApp(username,isEmployee=True)
+			mainApp(username,isEmployee)
 	else:
 		artistNotFoundWarning['text'] = 'Information is missing'
 
 
-def delAlbum(username):
+def delAlbum(username,isEmployee):
 	root.title('Delete Album')
 
 	global canvas
@@ -856,8 +860,9 @@ def delAlbum(username):
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	logoLabel.place(relx=0.82,rely=0.01)
-	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
-	adminLabel.place(relx=0.935,rely=0.07)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
 
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
@@ -886,14 +891,14 @@ def delAlbum(username):
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteAlbum(username,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
-	regAlbumButton.pack(side='top')
+	delAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteAlbum(username,isEmployee,albumTitleEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	delAlbumButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def deleteAlbum(username,albumTitle,artistName):
+def deleteAlbum(username,isEmployee,albumTitle,artistName):
 	albumNotFoundWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
@@ -930,13 +935,13 @@ def deleteAlbum(username,albumTitle,artistName):
 				query = ""
 				cursor.execute(query)
 				connection.commit()
-				mainApp(username,isEmployee=True)
+				mainApp(username,isEmployee)
 	else:
 		albumNotFoundWarning['text'] = 'Some information is missing'
 		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
-def delSong(username):
+def delSong(username,isEmployee):
 	root.title('Delete Song')
 
 	global canvas
@@ -979,14 +984,14 @@ def delSong(username):
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteSong(username,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteSong(username,isEmployee,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
 	regAlbumButton.pack(side='top')
 
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def deleteSong(username,trackName,artistName):
+def deleteSong(username,isEmployee,trackName,artistName):
 	songNotFoundWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
@@ -1026,7 +1031,7 @@ def deleteSong(username,trackName,artistName):
 				query = ""
 				cursor.execute(query)
 				connection.commit()
-				mainApp(username,isEmployee=True)
+				mainApp(username,isEmployee)
 	else:
 		songNotFoundWarning['text'] = 'Some information is missing'
 		artistNotFoundWarning['text'] = 'Some information is missing'
@@ -1253,6 +1258,128 @@ def search(entry):
 		displaySearchResult(rowsSearch)
 
 
+def requestCustomerId(username):
+	root.title('Manage Users')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Customer ID',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	customerIdEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	customerIdEntry.pack(side='top')
+
+	global customerNotFoundWarning
+	customerNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	customerNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	continueButton = tk.Button(frame,text='Continue',command=lambda: validateCustomerId(username,customerIdEntry.get()),width=15,height=2,fg='#575757')
+	continueButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+
+def validateCustomerId(username,customerid):
+	customerNotFoundWarning['text'] = ''
+
+	if len(customerid) > 0:
+		# CHECK IF TRACK NAME IS VALID
+		query = """
+		SELECT c.firstName,c.LastName
+		FROM Customer c
+		WHERE c.CustomerId = """ + customerid + """
+		LIMIT 1
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			customerNotFoundWarning['text'] = 'Customer not found'
+		else:
+			# customer found, show allow options window
+			firstname = rows[0][0]
+			lastname = rows[0][1]
+			showManageUsersOptions(username,customerid,firstname,lastname)
+	else:
+		customerNotFoundWarning['text'] = 'Some information is missing'
+
+
+def showManageUsersOptions(username,customerid,firstname,lastname):
+	root.title('Manage Users')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+	adminLabel.place(relx=0.935,rely=0.07)
+	
+	spacerTop = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Allow '+firstname+' '+lastname+' to:',font='Arial 30 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
+	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
+	spacer1.pack(side='top')
+
+	allowInactivateButton = tk.Button(frame,text='Inactivate',command=lambda: allowInactivate(username,customerid),width=20,height=2,fg='#575757')
+	allowInactivateButton.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer2.pack(side='top')
+
+	allowModifyButton = tk.Button(frame,text='Modify',command=lambda: allowModify(username,customerid),width=20,height=2,fg='#575757')
+	allowModifyButton.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer3.pack(side='top')
+
+	allowDeleteButton = tk.Button(frame,text='Delete',command=lambda: allowDelete(username,customerid),width=20,height=2,fg='#575757')
+	allowDeleteButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
+	returnToAppButton.pack(side='bottom')
+
+def allowInactivate(username,customerid):
+	query = "UPDATE Customer SET inactive_permission=true WHERE CustomerId = "+ customerid +" "
+	cursor.execute(query)
+	connection.commit()
+	mainApp(username,isEmployee=True)
+
+def allowModify(username,customerid):
+	query = "UPDATE Customer SET modify_permission=true WHERE CustomerId = "+ customerid +" "
+	cursor.execute(query)
+	connection.commit()
+	mainApp(username,isEmployee=True)
+
+def allowDelete(username,customerid):
+	query = "UPDATE Customer SET delete_permission=true WHERE CustomerId = "+ customerid +" "
+	cursor.execute(query)
+	connection.commit()
+	mainApp(username,isEmployee=True)
+
 # Fill output Table with the query result
 def displaySearchResult(rows):
 	outputTable.updateData(rows)
@@ -1385,11 +1512,11 @@ def login(reload):
 	loginButton = tk.Button(text='Login',bg='white',borderwidth=0, highlightthickness=0,command=lambda: authenticate(username.get(),password.get()))
 	loginButton.place(relx=0.35,rely=0.68,relwidth=0.15)
 
-	signInButton = tk.Button(text='Sign In',bg='white',borderwidth=0, highlightthickness=0,command=lambda: signUp())
+	signInButton = tk.Button(text='Sign Up',bg='white',borderwidth=0, highlightthickness=0,command=lambda: signUp())
 	signInButton.place(relx=0.55,rely=0.68,relwidth=0.15)
 
 
-# Sign in Screen
+# Sign up Screen
 def signUp():
 	root.title('Soundic Sign Up')
 
@@ -1484,7 +1611,14 @@ def signUp():
 	signInButton.place(relx=0.55,rely=0.95,relwidth=0.15)
 
 
-# Stream Screen
+def returnPermissions(username):
+	query = "SELECT c.inactive_permission,c.modify_permission,c.delete_permission FROM Customer c WHERE c.username = '"+ username +"' LIMIT 1"
+	cursor.execute(query)
+	rows = cursor.fetchall()
+	return rows[0]
+
+
+# Home Screen
 def mainApp(currentUsername,isEmployee):
 	root.title('Soundic')
 
@@ -1504,28 +1638,49 @@ def mainApp(currentUsername,isEmployee):
 	logoutButton = tk.Button(frame,text='Logout',command=logout,width=10,height=1,fg='#575757')
 	logoutButton.pack(side='bottom')
 
-	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 10 bold',fg='#ffffff',bg='#101010')
-	manageLabel.place(relx=0.895,rely=0.23)
+	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 11 bold',fg='#ffffff',bg='#101010')
+	manageLabel.place(relx=0.9,rely=0.23)
 	registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 	registerButton.place(relx=0.9,rely=0.3)
 
 	# Show admin options and commands
 	if isEmployee:
-		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername),width=10,height=2,fg='#575757')
+		manageUsersButton = tk.Button(frame,text='Manage Users',command=lambda: requestCustomerId(currentUsername),width=20,height=1,fg='#575757')
+		manageUsersButton.pack(side='top')
+
+		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		inactivateButton.place(relx=0.9,rely=0.4)
 
-		modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername),width=10,height=2,fg='#575757')
+		modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		modifyButton.place(relx=0.9,rely=0.5)
 
-		deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername),width=10,height=2,fg='#575757')
+		deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		deleteButton.place(relx=0.9,rely=0.6)
 
-		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,True),width=10,height=2,fg='#575757')
+		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		statsButton.place(relx=0.9,rely=0.7)
 	else:
-		# Customers can view stats
-		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,False),width=10,height=2,fg='#575757')
+		# Customer permission
+		canInactivate,canModify,canDelete = returnPermissions(currentUsername)
+
+		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		statsButton.place(relx=0.9,rely=0.4)
+
+		posY = 0.5
+
+		if canInactivate:
+			inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+			inactivateButton.place(relx=0.9,rely=posY)
+			posY += 0.1
+		if canModify:
+			modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+			modifyButton.place(relx=0.9,rely=posY)
+			posY += 0.1
+		if canDelete:
+			deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+			deleteButton.place(relx=0.9,rely=posY)
+
+
 
 
 	# Soundic Logo

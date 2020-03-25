@@ -10,7 +10,7 @@ import random
 			Conection to DB
 ------------------------------------------
 '''
-connection = pg.connect(user='postgres',host='localhost',port='5432',database='Proyecto',password='dbpass20')
+connection = pg.connect(user='postgres',host='localhost',port='5432',database='Soundic',password='dbpass20')
 cursor = connection.cursor()
 
 
@@ -1563,8 +1563,8 @@ def displayStats(username,isEmployee,num,title):
 	rows = cursor.fetchall()
 	statsTable.updateData(rows)
 		
-	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
-	returnToAppButton.pack(side='bottom')
+	returnToStatsButton = tk.Button(frame,text='Return to Statistics',fg='#575757',command=lambda: statsPage(username,isEmployee))
+	returnToStatsButton.pack(side='bottom')
 
 
 def search(entry):
@@ -1785,7 +1785,7 @@ class MultiColumnListbox(object):
 				self.tree.insert('', 'end', values=row,tags=('odd'))
 
 			for ix, val in enumerate(row):
-				self.tree.column(self.columnsToShow[ix], width=int(1008/len(self.columnsToShow)))
+				self.tree.column(self.columnsToShow[ix], width=int(1012/len(self.columnsToShow)))
 
 	def updateData(self,rows):
 		for i in self.tree.get_children():
@@ -1800,7 +1800,7 @@ class MultiColumnListbox(object):
 				self.tree.insert('', 'end', values=row,tags=('odd'))
 
 			for ix, val in enumerate(row):
-				self.tree.column(self.columnsToShow[ix], width=int(1004/len(self.columnsToShow)))
+				self.tree.column(self.columnsToShow[ix], width=int(1012/len(self.columnsToShow)))
 
 
 

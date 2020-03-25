@@ -1,6 +1,7 @@
 # Soundic
-### Music Streaming Service
+### Sound Library Managament Service
 UVG - Bases de Datos
+Proyecto 1
 
 ## Requirements
 * Python 3.x
@@ -8,7 +9,10 @@ UVG - Bases de Datos
 * tkinter
 
 ## Usage
-
+1. Install PostgresSQL
+2. Create a new data base (Name: Soundic Pass: dbpass20)
+3. Run init.sql
+4. Run Soundic
 ```
 python3 Soundic.py
 ```

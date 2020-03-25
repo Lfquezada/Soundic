@@ -11,7 +11,7 @@ Proyecto 1
 ## Usage
 1. Install PostgresSQL
 2. Create a new data base (Name: Soundic Pass: dbpass20)
-3. Run init.sql
+3. Run proyect1.sql
 4. Run Soundic
 ```
 python3 Soundic.py

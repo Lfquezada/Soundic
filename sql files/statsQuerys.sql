@@ -61,8 +61,12 @@ GROUP BY artist.name
 ORDER BY COUNT(DISTINCT genreid) DESC
 LIMIT 5
 
--- 9. MediaType mas utilizado
-
+-- 9. Most used MediaType
+SELECT mt.Name, COUNT(mt.MediaTypeId)
+FROM Track t
+JOIN MediaType mt ON mt.MediaTypeId = t.MediaTypeId
+GROUP BY mt.MediaTypeId
+ORDER BY COUNT(mt.MediaTypeId) DESC
 
 -- 10. 
 

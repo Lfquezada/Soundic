@@ -64,3 +64,6 @@ LIMIT 5
 -- 9. MediaType mas utilizado
 
 
+-- 10. 
+
+

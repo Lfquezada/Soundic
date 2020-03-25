@@ -20,10 +20,6 @@ cursor = connection.cursor()
 ------------------------------------------
 '''
 def authenticate(username,password):
-
-	if username == '' and password == '':
-		mainApp('testUser',isEmployee=True)
-
 	query = """
 	SELECT c.passwrd
 	FROM Customer c
@@ -1476,9 +1472,6 @@ def displayStats(username,isEmployee,num,title):
 		ORDER BY COUNT(artist.artistid) DESC
 		LIMIT 5
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 2:
 		statsTable = MultiColumnListbox(frame,['Genre','Track Count'])
 		query = """
@@ -1489,9 +1482,6 @@ def displayStats(username,isEmployee,num,title):
 		ORDER BY COUNT(genre.name) DESC
 		LIMIT 5
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 3:
 		statsTable = MultiColumnListbox(frame,['Playlist','Duration (min)'])
 		query = """
@@ -1501,9 +1491,6 @@ def displayStats(username,isEmployee,num,title):
 		JOIN track ON playlisttrack.trackid = track.trackid
 		GROUP BY playlist.name
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 4:
 		statsTable = MultiColumnListbox(frame,['Track','Artist','Duration (min)'])
 		query = """
@@ -1514,9 +1501,6 @@ def displayStats(username,isEmployee,num,title):
 		ORDER BY track.milliseconds DESC
 		LIMIT 5
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 5:
 		statsTable = MultiColumnListbox(frame,['First Name','Last Name','Tracks Registered'])
 		query = """
@@ -1527,9 +1511,6 @@ def displayStats(username,isEmployee,num,title):
 		ORDER BY COUNT(trackid) DESC
 		LIMIT 5
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 6:
 		statsTable = MultiColumnListbox(frame,['Genre','Average (min)'])
 		query = """
@@ -1539,9 +1520,6 @@ def displayStats(username,isEmployee,num,title):
 		GROUP BY genre.name
 		ORDER BY ((AVG(track.milliseconds)/1000)/60) DESC
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 7:
 		statsTable = MultiColumnListbox(frame,['Playlist','Artist Count'])
 		query = """
@@ -1553,9 +1531,6 @@ def displayStats(username,isEmployee,num,title):
 		JOIN artist on album.artistid = artist.artistid
 		GROUP BY playlist.name
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 8:
 		statsTable = MultiColumnListbox(frame,['Artist','Genre Count'])
 		query = """
@@ -1567,9 +1542,6 @@ def displayStats(username,isEmployee,num,title):
 		ORDER BY COUNT(DISTINCT genreid) DESC
 		LIMIT 5
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 9:
 		statsTable = MultiColumnListbox(frame,['Media Type','Count'])
 		query = """
@@ -1579,9 +1551,6 @@ def displayStats(username,isEmployee,num,title):
 		GROUP BY mt.MediaTypeId
 		ORDER BY COUNT(mt.MediaTypeId) DESC
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
 	if num == 10:
 		statsTable = MultiColumnListbox(frame,['Billing Country','Purchases'])
 		query = """
@@ -1590,12 +1559,10 @@ def displayStats(username,isEmployee,num,title):
 		GROUP BY BillingCountry
 		ORDER BY (COUNT(BillingCountry)) DESC
 		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		statsTable.updateData(rows)
+	cursor.execute(query)
+	rows = cursor.fetchall()
+	statsTable.updateData(rows)
 		
-
-
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 

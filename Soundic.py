@@ -1412,6 +1412,10 @@ def statsPage(username,isEmployee):
 	stats4Button = tk.Button(frame,text=title4,command=lambda: displayStats(username,isEmployee,4,title4),width=40,height=2,fg='#575757')
 	stats4Button.place(relx=0.1,rely=0.65)
 
+	title9 = 'Most used Media Type'
+	stats9Button = tk.Button(frame,text=title9,command=lambda: displayStats(username,isEmployee,9,title9),width=40,height=2,fg='#575757')
+	stats9Button.place(relx=0.1,rely=0.8)
+
 	# Col 2
 	title5 = 'Users with the most registered tracks'
 	stats5Button = tk.Button(frame,text=title5,command=lambda: displayStats(username,isEmployee,5,title5),width=40,height=2,fg='#575757')
@@ -1428,6 +1432,10 @@ def statsPage(username,isEmployee):
 	title8 = 'Most diverse artists'
 	stats8Button = tk.Button(frame,text=title8,command=lambda: displayStats(username,isEmployee,8,title8),width=40,height=2,fg='#575757')
 	stats8Button.place(relx=0.6,rely=0.65)
+
+	title10 = 'Most popular genre by country'
+	stats10Button = tk.Button(frame,text=title10,command=lambda: displayStats(username,isEmployee,10,title10),width=40,height=2,fg='#575757')
+	stats10Button.place(relx=0.6,rely=0.8)
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
@@ -1562,6 +1570,20 @@ def displayStats(username,isEmployee,num,title):
 		cursor.execute(query)
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
+	if num == 9:
+		statsTable = MultiColumnListbox(frame,['Media Type','Count'])
+		query = """
+		SELECT mt.Name, COUNT(mt.MediaTypeId)
+		FROM Track t
+		JOIN MediaType mt ON mt.MediaTypeId = t.MediaTypeId
+		GROUP BY mt.MediaTypeId
+		ORDER BY COUNT(mt.MediaTypeId) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+	if num == 10:
+		pass
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')

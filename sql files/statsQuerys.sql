@@ -61,4 +61,6 @@ GROUP BY artist.name
 ORDER BY COUNT(DISTINCT genreid) DESC
 LIMIT 5
 
+-- 9. MediaType mas utilizado
+
 

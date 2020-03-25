@@ -27,20 +27,21 @@ def authenticate(username,password):
 	query = """
 	SELECT c.passwrd
 	FROM Customer c
-	WHERE c.username = '""" + username + """'
+	WHERE c.username = %s
+	LIMIT 1
 	"""
-
-	cursor.execute(query)
+	cursor.execute(query,[username])
 	rows = cursor.fetchall()
 
 	if len(rows) == 0: # means no username in customers was found, we search if its an employee
 		query = """
 		SELECT e.passwrd
 		FROM Employee e
-		WHERE e.username = '""" + username + """'
+		WHERE e.username = %s
+		LIMIT 1
 		"""
 
-		cursor.execute(query)
+		cursor.execute(query,[username])
 		rows = cursor.fetchall()
 
 		if len(rows) == 0: # no username match was made so its an invalid username
@@ -55,63 +56,6 @@ def authenticate(username,password):
 			mainApp(username,isEmployee=False)
 		else:
 			confirmationLabel['text'] = 'Invalid password'
-
-
-def createUser(username,password,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email):
-
-	if len(firstName) <= 1 or len(lastName) <= 1 or len(username) <= 1 or len(password) <= 1 or len(username) > 10 or len(password) > 20:
-		# not a valid register, show a red warning
-		regConfLabel['text'] = 'Invalid data lenght'
-	else:
-		# valid register but username may already exist
-
-		query = """
-		SELECT c.username
-		FROM Customer c
-		WHERE c.username = '""" + username + """'
-		"""
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		
-		if len(rows) > 0:
-			# then username already exists, show red warning
-			regConfLabel['text'] = 'Username already exists'
-		else:
-			# its a valid register with a unique username
-
-			# get the last custumer id added
-			query = """
-			SELECT c.CustomerId
-			FROM Customer c
-			ORDER BY c.CustomerId DESC
-			LIMIT 1
-			"""
-			cursor.execute(query)
-			rows = cursor.fetchall()
-			newCustomerId = rows[0][0] + 1
-			newCustomerId = str(newCustomerId)
-
-			# get a random employee id
-			query = """
-			SELECT e.EmployeeId
-			FROM Employee e
-			"""
-			cursor.execute(query)
-			rows = cursor.fetchall()
-			newSupportRepId = rows[random.randint(1,len(rows)-1)][0]
-			newSupportRepId = str(newSupportRepId)
-
-			query = """
-
-			INSERT INTO Customer (username,passwrd,CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId) 
-			VALUES ('""" + username + """','""" + password + """',""" + newCustomerId + """,'""" + firstName + """','""" + lastName + """','""" + company + """','""" + address + """','""" + city + """','""" + state + """','""" + country + """','""" + postalCode + """','""" + phone + """','""" + fax + """','""" + email + """',""" + newSupportRepId + """);
-
-			"""
-
-			cursor.execute(query)
-			connection.commit()
-			login(reload=True)
-
 
 def logout():
 	login(reload=True)
@@ -132,16 +76,16 @@ def showProfile(username,isEmployee):
 		query = """
 		SELECT e.EmployeeId, e.FirstName, e.LastName
 		FROM Employee e
-		WHERE e.username = '""" + username + """'
+		WHERE e.username = %s
 		"""
 	else:
 		query = """
 		SELECT c.CustomerId, c.FirstName, c.LastName
 		FROM Customer c
-		WHERE c.username = '""" + username + """'
+		WHERE c.username = %s
 		"""
 
-	cursor.execute(query)
+	cursor.execute(query,[username])
 	rows = cursor.fetchall()
 
 	if len(rows) > 0:
@@ -194,8 +138,8 @@ def registerPage(username,isEmployee):
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	regSongButton = tk.Button(frame,text='Song',command=lambda: registerSong(username,isEmployee),width=20,height=2,fg='#575757')
-	regSongButton.pack(side='top')
+	regTrackButton = tk.Button(frame,text='Track',command=lambda: registerTrack(username,isEmployee),width=20,height=2,fg='#575757')
+	regTrackButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
@@ -291,8 +235,8 @@ def registerAlbum(username,isEmployee):
 	returnToAppButton.pack(side='bottom')
 
 
-def registerSong(username,isEmployee):
-	root.title('Register Song')
+def registerTrack(username,isEmployee):
+	root.title('Register Track')
 
 	global canvas
 	canvas.destroy()
@@ -311,12 +255,12 @@ def registerSong(username,isEmployee):
 	boxWidth = 0.28
 	col1Xpos = 0.23
 
-	instruction1 = tk.Label(frame,text = 'Enter Song Name *',fg='#ffffff',bg='#121212')
+	instruction1 = tk.Label(frame,text = 'Enter Track Name *',fg='#ffffff',bg='#121212')
 	instruction1.place(relx=col1Xpos,rely=0.1)
 	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
 	trackNameEntry.place(relx=col1Xpos,rely=0.13,relwidth=boxWidth)
 
-	instruction2 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
+	instruction2 = tk.Label(frame,text = 'Enter Album Title *',fg='#ffffff',bg='#121212')
 	instruction2.place(relx=col1Xpos,rely=0.2)
 	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
 	albumTitleEntry.place(relx=col1Xpos,rely=0.23,relwidth=boxWidth)
@@ -325,16 +269,17 @@ def registerSong(username,isEmployee):
 	albumNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	albumNotFoundWarning.place(relx=col1Xpos,rely=0.27)
 
-	instruction3 = tk.Label(frame,text = 'Enter Media Type *',fg='#ffffff',bg='#121212')
+	instruction3 = tk.Label(frame,text = 'Select Media Type *',fg='#ffffff',bg='#121212')
 	instruction3.place(relx=col1Xpos,rely=0.3)
-	mediaTypeEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	mediaTypeEntry.place(relx=col1Xpos,rely=0.33,relwidth=boxWidth)
 
-	global mediaTypeNotFoundWarning
-	mediaTypeNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	mediaTypeNotFoundWarning.place(relx=col1Xpos,rely=0.37)
+	mediaTypes = ['MPEG audio file','Protected AAC audio file','Protected MPEG-4 video file','Purchased AAC audio file','AAC audio file']
+	varMediaType = tk.StringVar(frame)
+	varMediaType.set(mediaTypes[0])
+	dropDownMenuMediaType = tk.OptionMenu(frame,varMediaType,mediaTypes[0],mediaTypes[1],mediaTypes[2],mediaTypes[3],mediaTypes[4])
+	dropDownMenuMediaType.config(bg='#121212')
+	dropDownMenuMediaType.place(relx=col1Xpos,rely=0.34,relwidth=boxWidth)
 
-	instruction4 = tk.Label(frame,text = 'Enter Genre',fg='#ffffff',bg='#121212')
+	instruction4 = tk.Label(frame,text = 'Enter Genre *',fg='#ffffff',bg='#121212')
 	instruction4.place(relx=col1Xpos,rely=0.4)
 	genreEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
 	genreEntry.place(relx=col1Xpos,rely=0.43,relwidth=boxWidth)
@@ -377,7 +322,7 @@ def registerSong(username,isEmployee):
 	unitPriceErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
 	unitPriceErrorWarning.place(relx=0.55,rely=0.37)
 
-	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,isEmployee,trackNameEntry.get(),albumTitleEntry.get(),mediaTypeEntry.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
+	regTrackButton = tk.Button(frame,text='Register',command=lambda: createTrack(username,isEmployee,trackNameEntry.get(),albumTitleEntry.get(),varMediaType.get(),genreEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
 	regTrackButton.place(relx=0.55,rely=0.45)
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
@@ -392,9 +337,9 @@ def createArtist(username,isEmployee,artistName):
 		query = """
 		SELECT *
 		FROM Artist a
-		WHERE a.Name = '""" + artistName + """'
+		WHERE a.Name = %s
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[artistName])
 		rows = cursor.fetchall()
 
 		if len(rows) > 0:
@@ -411,19 +356,16 @@ def createArtist(username,isEmployee,artistName):
 			cursor.execute(query)
 			rows = cursor.fetchall()
 			newArtistId = rows[0][0] + 1
-			newArtistId = str(newArtistId)
 
 			query = """
-
 			INSERT INTO Artist (ArtistId,Name) 
-			VALUES (""" + newArtistId + """,'""" + artistName + """');
-
+			VALUES (%s,%s);
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[newArtistId,artistName])
 			connection.commit()
 			mainApp(username,isEmployee)
 	else:
-		registerArtistWarning['text'] = 'Enter a name'
+		registerArtistWarning['text'] = 'Please enter a name'
 
 
 def createAlbum(username,isEmployee,albumTitle,artistName):
@@ -435,16 +377,16 @@ def createAlbum(username,isEmployee,albumTitle,artistName):
 		query = """
 		SELECT a.ArtistId
 		FROM Artist a
-		WHERE a.Name = '""" + artistName + """'
+		WHERE a.Name = %s
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[artistName])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
 			artistNotFoundWarning['text'] = 'Artist not found'
 		else:
 			#get the ArtistId
-			artistId = str(rows[0][0])
+			artistId = rows[0][0]
 
 			# get the last AlbumId added and add 1 to make the new one
 			query = """
@@ -456,13 +398,12 @@ def createAlbum(username,isEmployee,albumTitle,artistName):
 			cursor.execute(query)
 			rows = cursor.fetchall()
 			newAlbumId = rows[0][0] + 1
-			newAlbumId = str(newAlbumId)
 
 			query = """
 			INSERT INTO Album (AlbumId,Title,ArtistId) 
-			VALUES (""" + newAlbumId + """,'""" + albumTitle + """',""" + artistId + """);
+			VALUES (%s,%s,%s);
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[newAlbumId,albumTitle,artistId])
 			connection.commit()
 			mainApp(username,isEmployee)
 	else:
@@ -473,123 +414,119 @@ def createAlbum(username,isEmployee,albumTitle,artistName):
 def createTrack(username,isEmployee,trackName,albumTitle,mediaType,genreName,composer,millisec,bytes,unitPrice):
 
 	# Show nothing on all warnings (reset per click)
-	warnings = [albumNotFoundWarning,mediaTypeNotFoundWarning,genreNotFoundWarning,millisecErrorWarning,bytesErrorWarning,unitPriceErrorWarning]
+	warnings = [albumNotFoundWarning,genreNotFoundWarning,millisecErrorWarning,bytesErrorWarning,unitPriceErrorWarning]
 	for w in warnings:
 		w['text'] = ''
 
-	if len(trackName) <= 0 or len(mediaType) <= 0 or len(millisec) <= 0 or len(unitPrice) <= 0:
-		for w in warnings:
-			w['text'] = 'Some required field is empty'
+	if len(trackName) <= 0 or len(millisec) <= 0 or len(unitPrice) <= 0 or len(albumTitle) <= 0 or len(genreName) <= 0:
+		albumNotFoundWarning['text'] = 'Some required field is empty'
+		genreNotFoundWarning['text'] = 'Some required field is empty'
+		millisecErrorWarning['text'] = 'Some required field is empty'
+		unitPriceErrorWarning['text'] = 'Some required field is empty'
 	else:
 
 		# CHECK IF ALBUM EXISTS
 		query = """
 		SELECT a.AlbumId
 		FROM Album a
-		WHERE a.Title = '""" + albumTitle + """'
+		WHERE a.Title = %s
+		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[albumTitle])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0 and albumTitle != '':
 			albumNotFoundWarning['text'] = 'Album not found'
 		else:
 			if albumTitle == '':
-				albumId = 'NULL'
+				albumId = None
 			else:
 				albumId = rows[0][0]
 
-			# CHECK IF MEDIA TYPE EXISTS
+			# get the mediatypeid
 			query = """
 			SELECT m.MediaTypeId
 			FROM MediaType m
-			WHERE m.Name = '""" + mediaType + """'
+			WHERE m.Name = %s
+			LIMIT 1
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[mediaType])
+			rows = cursor.fetchall()
+			mediaTypeId = rows[0][0]
+
+			# CHECK IF GENRE EXISTS
+			query = """
+			SELECT g.GenreId
+			FROM Genre g
+			WHERE g.Name = %s
+			LIMIT 1
+			"""
+			cursor.execute(query,[genreName])
 			rows = cursor.fetchall()
 
-			if len(rows) <= 0:
-				mediaTypeNotFoundWarning['text'] = 'Media type not found'
+			if len(rows) <= 0 and genreName != '':
+				genreNotFoundWarning['text'] = 'Genre not found'
 			else:
-				mediaTypeId = rows[0][0]
+				genreId = None if genreName == '' else rows[0][0]
+				composer = None if composer == '' else composer
+				bytes = None if bytes == '' else bytes
 
-				# CHECK IF GENRE EXISTS
-				query = """
-				SELECT g.GenreId
-				FROM Genre g
-				WHERE g.Name = '""" + genreName + """'
-				"""
-				cursor.execute(query)
-				rows = cursor.fetchall()
+				if isInt(millisec):
+					if isInt(bytes) or bytes == None:
+						if isFloat(unitPrice):
 
-				if len(rows) <= 0 and genreName != '':
-					genreNotFoundWarning['text'] = 'Genre not found'
-				else:
-					if genreName == '':
-						genreId = 'NULL'
-					else:
-						genreId = rows[0][0]
+							# EVERY ENTRY IS CORRECT
 
-					if composer == '':
-						composer = 'NULL'
+							# get the new TrackId
+							query = """
+							SELECT t.TrackId
+							FROM Track t
+							ORDER BY t.TrackId DESC
+							LIMIT 1
+							"""
+							cursor.execute(query)
+							rows = cursor.fetchall()
+							newTrackId = rows[0][0] + 1
 
-					if isInt(millisec):
-						if isInt(bytes):
-							if isFloat(unitPrice):
+							query = """
+							INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice,Active)
+							VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+							"""
+							cursor.execute(query,[newTrackId,trackName,albumId,mediaTypeId,genreId,composer,millisec,bytes,unitPrice,True])
+							connection.commit()
 
-								# EVERY ENTRY IS CORRECT
-
-								# get the new TrackId
+							# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
+							if not isEmployee:
+								# get the customerid
 								query = """
-								SELECT t.TrackId
-								FROM Track t
-								ORDER BY t.TrackId DESC
+								SELECT c.CustomerId
+								FROM Customer c
+								WHERE c.username = %s
 								LIMIT 1
 								"""
-								cursor.execute(query)
+								cursor.execute(query,[username])
 								rows = cursor.fetchall()
-								newTrackId = rows[0][0] + 1
-								newTrackId = str(newTrackId)
+								customerid = str(rows[0][0])
 
 								query = """
-								INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice,Active)
-								VALUES (""" + newTrackId + """,'""" + trackName + """',""" + str(albumId) + """,""" + str(mediaTypeId) + """,""" + str(genreId) + """,'""" + composer + """', """ + millisec + """, """ + bytes + """,""" + unitPrice + """,true);
+								INSERT INTO track_register (TrackId, CustomerId)
+								VALUES (%s,%s)
 								"""
-								cursor.execute(query)
+								cursor.execute(query,[newTrackId,customerid])
 								connection.commit()
 
-								# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
-								if not isEmployee:
-									# get the customerid
-									query = """
-									SELECT c.CustomerId
-									FROM Customer c
-									WHERE c.username = '""" + username + """'
-									LIMIT 1
-									"""
-									cursor.execute(query)
-									rows = cursor.fetchall()
-									customerid = str(rows[0][0])
+							mainApp(username,isEmployee)
 
-									query = """
-									INSERT INTO track_register (TrackId, CustomerId)
-									VALUES (""" + newTrackId + """,""" + customerid + """);
-									"""
-									cursor.execute(query)
-									connection.commit()
-
-								mainApp(username,isEmployee)
-
-							else:
-								unitPriceErrorWarning['text'] = 'Unit price must be a number'
 						else:
-							bytesErrorWarning['text'] = 'Bytes must be an integer'
+							unitPriceErrorWarning['text'] = 'Unit price must be a number'
 					else:
-						millisecErrorWarning['text'] = 'Millisecongs must be an integer'
+						bytesErrorWarning['text'] = 'Bytes must be an integer'
+				else:
+					millisecErrorWarning['text'] = 'Millisecongs must be an integer'
 
 
-def inactivateSongPage(username,isEmployee):
-	root.title('Inactivate Song')
+def inactivateTrackPage(username,isEmployee):
+	root.title('Inactivate Track')
 
 	global canvas
 	canvas.destroy()
@@ -608,14 +545,14 @@ def inactivateSongPage(username,isEmployee):
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
 
-	instruction1 = tk.Label(frame,text = 'Enter Song Name',fg='#ffffff',bg='#121212')
+	instruction1 = tk.Label(frame,text = 'Enter Track Name',fg='#ffffff',bg='#121212')
 	instruction1.pack(side='top')
-	songNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	songNameEntry.pack(side='top')
+	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	trackNameEntry.pack(side='top')
 
-	global songNotFoundWarning
-	songNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	songNotFoundWarning.pack(side='top')
+	global trackNotFoundWarning
+	trackNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	trackNotFoundWarning.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer2.pack(side='top')
@@ -632,15 +569,15 @@ def inactivateSongPage(username,isEmployee):
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSong(username,isEmployee,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateTrack(username,isEmployee,trackNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
 	inactivateButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def inactivateSong(username,isEmployee,trackName,artistName):
-	songNotFoundWarning['text'] = ''
+def inactivateTrack(username,isEmployee,trackName,artistName):
+	trackNotFoundWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
 	if len(trackName) > 0 and len(artistName) > 0:
@@ -649,14 +586,14 @@ def inactivateSong(username,isEmployee,trackName,artistName):
 		query = """
 		SELECT t.TrackId
 		FROM Track t
-		WHERE t.Name = '""" + trackName + """'
+		WHERE t.Name = %s
 		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[trackName])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
-			songNotFoundWarning['text'] = 'Song not found'
+			trackNotFoundWarning['text'] = 'Track not found'
 		else:
 
 			# CHECK THE ARTIST MATCHES THE TRACK NAME
@@ -665,9 +602,9 @@ def inactivateSong(username,isEmployee,trackName,artistName):
 			FROM Track 
 			JOIN Album ON Album.AlbumId = Track.AlbumId
 			JOIN Artist ON Artist.ArtistId = Album.ArtistId
-			WHERE Artist.Name = '""" + artistName + """' AND Track.Name = '""" + trackName + """'
+			WHERE Artist.Name = %s AND Track.Name = %s
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[artistName,trackName])
 			rows = cursor.fetchall()
 
 			if len(rows) <= 0:
@@ -675,12 +612,12 @@ def inactivateSong(username,isEmployee,trackName,artistName):
 			else:
 				# GET THE UNIQUE TRACK ID AND SET active TO false
 				trackId = rows[0][0]
-				query = "UPDATE Track SET Active = false WHERE TrackId = " + str(trackId) + ""
-				cursor.execute(query)
+				query = "UPDATE Track SET Active = false WHERE TrackId = %s"
+				cursor.execute(query,[trackId])
 				connection.commit()
 				mainApp(username,isEmployee)
 	else:
-		songNotFoundWarning['text'] = 'Some information is missing'
+		trackNotFoundWarning['text'] = 'Some information is missing'
 		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
@@ -708,33 +645,431 @@ def modifyPage(username,isEmployee):
 	spacer1 = tk.Label(frame,text='',font='Arial 67',bg='#121212')
 	spacer1.pack(side='top')
 
-	modArtistButton = tk.Button(frame,text='Artist',command=lambda: modArtist(username,isEmployee),width=20,height=2,fg='#575757')
+	modArtistButton = tk.Button(frame,text='Artist',command=lambda: modArtistPage(username,isEmployee),width=20,height=2,fg='#575757')
 	modArtistButton.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer2.pack(side='top')
 
-	modAlbumButton = tk.Button(frame,text='Album',command=lambda: modAlbum(username,isEmployee),width=20,height=2,fg='#575757')
+	modAlbumButton = tk.Button(frame,text='Album',command=lambda: modAlbumPage(username,isEmployee),width=20,height=2,fg='#575757')
 	modAlbumButton.pack(side='top')
 
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	modSongButton = tk.Button(frame,text='Song',command=lambda: modSong(username,isEmployee),width=20,height=2,fg='#575757')
-	modSongButton.pack(side='top')
+	modTrackButton = tk.Button(frame,text='Track',command=lambda: selectTrackToModPage(username,isEmployee),width=20,height=2,fg='#575757')
+	modTrackButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def modArtist(username,isEmployee):
-	pass
+def modArtistPage(username,isEmployee):
+	root.title('Modify Artist')
 
-def modAlbum(username,isEmployee):
-	pass
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
 
-def modSong(username,isEmployee):
-	pass
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 140',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 20',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter New Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	newArtistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	newArtistNameEntry.pack(side='top')
+
+	global newArtistNameWarning
+	newArtistNameWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	newArtistNameWarning.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer3.pack(side='top')
+
+	modArtistButton = tk.Button(frame,text='Change',command=lambda: modArtist(username,isEmployee,artistNameEntry.get(),newArtistNameEntry.get()),width=15,height=2,fg='#575757')
+	modArtistButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+def modArtist(username,isEmployee,artistName,newArtistName):
+	artistNotFoundWarning['text'] = ''
+	newArtistNameWarning['text'] = ''
+	
+	if len(artistName) > 0 and len(newArtistName):
+
+		query = """
+		SELECT a.ArtistId
+		FROM Artist a
+		WHERE a.Name = %s
+		LIMIT 1
+		"""
+		cursor.execute(query,[newArtistName])
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0: # check if new artist name is available
+			query = """
+			SELECT a.ArtistId
+			FROM Artist a
+			WHERE a.Name = %s
+			LIMIT 1
+			"""
+			cursor.execute(query,[artistName])
+			rows = cursor.fetchall()
+
+			if len(rows) <= 0:
+				artistNotFoundWarning['text'] = 'Artist not found'
+			else:
+				#get the ArtistId
+				artistId = rows[0][0]
+
+				query = "UPDATE Artist SET Name = %s WHERE ArtistId = %s"
+				cursor.execute(query,[newArtistName,artistId])
+				connection.commit()
+				mainApp(username,isEmployee)
+		else:
+			newArtistNameWarning['text'] = 'Artist name already exists'
+	else:
+		artistNotFoundWarning['text'] = 'Information is missing'
+		newArtistNameWarning['text'] = 'Information is missing'
+
+
+def modAlbumPage(username,isEmployee):
+	root.title('Modify Album')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	col1Xpos = 0.3
+	col2Xpos = 0.5
+
+	instruction1 = tk.Label(frame,text = 'Enter Album Title',fg='#ffffff',bg='#121212')
+	instruction1.place(relx=col1Xpos,rely=0.27)
+	albumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	albumTitleEntry.place(relx=col1Xpos,rely=0.3)
+
+	global albumNotFoundWarning
+	albumNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	albumNotFoundWarning.place(relx=col1Xpos,rely=0.35)
+
+	instruction2 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.place(relx=col1Xpos,rely=0.42)
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.place(relx=col1Xpos,rely=0.45)
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.place(relx=col1Xpos,rely=0.50)
+
+	instruction3 = tk.Label(frame,text = 'Enter New Album Title',fg='#ffffff',bg='#121212')
+	instruction3.place(relx=col2Xpos,rely=0.27)
+	newAlbumTitleEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	newAlbumTitleEntry.place(relx=col2Xpos,rely=0.3)
+
+	global newAlbumWarning
+	newAlbumWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	newAlbumWarning.place(relx=col2Xpos,rely=0.35)
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+	spacer = tk.Label(frame,text='',font='Arial 160',bg='#121212')
+	spacer.pack(side='bottom')
+
+	modAlbumButton = tk.Button(frame,text='Change',command=lambda: modAlbum(username,isEmployee,albumTitleEntry.get(),artistNameEntry.get(),newAlbumTitleEntry.get()),width=15,height=2,fg='#575757')
+	modAlbumButton.pack(side='bottom')
+
+def modAlbum(username,isEmployee,albumTitle,artistName,newAlbumTitle):
+	artistNotFoundWarning['text'] = ''
+	albumNotFoundWarning['text'] = ''
+	newAlbumWarning['text'] = ''
+	
+	if len(albumTitle) > 0 and len(artistName) > 0 and len(newAlbumTitle) > 0:
+		query = """
+		SELECT a.ArtistId
+		FROM Artist a
+		WHERE a.Name = %s
+		LIMIT 1
+		"""
+		cursor.execute(query,[artistName])
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			artistNotFoundWarning['text'] = 'Artist not found'
+		else:
+			#get the ArtistId
+			artistId = rows[0][0]
+
+			query = """
+			SELECT a.AlbumId
+			FROM Album a
+			WHERE a.ArtistId = %s AND a.Title = %s
+			"""
+			cursor.execute(query,[artistId,albumTitle])
+			rows = cursor.fetchall()
+			
+			if len(rows) <= 0:
+				albumNotFoundWarning['text'] = 'Album not found for artist'
+			else:
+				albumId = rows[0][0]
+
+				query = "UPDATE Album SET Title = %s WHERE AlbumId = %s AND ArtistId = %s"
+				cursor.execute(query,[newAlbumTitle,albumId,artistId])
+				connection.commit()
+				mainApp(username,isEmployee)
+	else:
+		artistNotFoundWarning['text'] = 'Information is missing'
+		albumNotFoundWarning['text'] = 'Information is missing'
+		newAlbumWarning['text'] = 'Information is missing'
+
+
+def selectTrackToModPage(username,isEmployee):
+	root.title('Modify Track')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Track Name',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	trackNameEntry.pack(side='top')
+
+	global trackNotFoundWarning
+	trackNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	trackNotFoundWarning.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter Artist Name',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	artistNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	artistNameEntry.pack(side='top')
+
+	global artistNotFoundWarning
+	artistNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	artistNotFoundWarning.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer3.pack(side='top')
+
+	modTrackPageButton = tk.Button(frame,text='Continue',command=lambda: modTrackPage(username,isEmployee,trackNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	modTrackPageButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
+def modTrackPage(username,isEmployee,trackName,artistName):
+	trackNotFoundWarning['text'] = ''
+	artistNotFoundWarning['text'] = ''
+
+	if len(trackName) > 0 and len(artistName) > 0:
+
+		# CHECK IF TRACK NAME IS VALID
+		query = """
+		SELECT t.TrackId
+		FROM Track t
+		WHERE t.Name = %s
+		LIMIT 1
+		"""
+		cursor.execute(query,[trackName])
+		rows = cursor.fetchall()
+
+		if len(rows) <= 0:
+			trackNotFoundWarning['text'] = 'Track not found'
+		else:
+
+			# CHECK THE ARTIST MATCHES THE TRACK NAME
+			query = """
+			SELECT t.TrackId, t.Name, t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice
+			FROM Track t
+			JOIN Album ON Album.AlbumId = t.AlbumId
+			JOIN Artist ON Artist.ArtistId = Album.ArtistId
+			WHERE Artist.Name = %s AND t.Name = %s
+			"""
+			cursor.execute(query,[artistName,trackName])
+			rows = cursor.fetchall()
+
+			if len(rows) <= 0:
+				artistNotFoundWarning['text'] = 'Artist for track not found'
+			else:
+				trackId,trackName,trackComposer,trackMilliseconds,trackBytes,trackUnitPrice = rows[0]
+
+				# All info is corret, so we preload the existing info in a new page
+				root.title('Modify Track')
+
+				global canvas
+				canvas.destroy()
+				canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+				canvas.pack()
+				frame = tk.Frame(root,bg='#121212')
+				frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+				# Soundic Logo
+				logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+				logoLabel.place(relx=0.82,rely=0.01)
+				if isEmployee:
+					adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+					adminLabel.place(relx=0.935,rely=0.07)
+
+				boxWidth = 0.28
+				col1Xpos = 0.23
+
+				# Col 1
+
+				instruction1 = tk.Label(frame,text = 'Track Name *',fg='#ffffff',bg='#121212')
+				instruction1.place(relx=col1Xpos,rely=0.1)
+				trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+				trackNameEntry.place(relx=col1Xpos,rely=0.13,relwidth=boxWidth)
+				trackNameEntry.insert(0,trackName)
+
+				instruction2 = tk.Label(frame,text = 'Composer',fg='#ffffff',bg='#121212')
+				instruction2.place(relx=col1Xpos,rely=0.2)
+				composerEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+				composerEntry.place(relx=col1Xpos,rely=0.23,relwidth=boxWidth)
+				composerEntry.insert(0,trackComposer)
+
+				# Col 2
+
+				instruction3 = tk.Label(frame,text = 'Milliseconds *',fg='#ffffff',bg='#121212')
+				instruction3.place(relx=0.55,rely=0.1)
+				millisecEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+				millisecEntry.place(relx=0.55,rely=0.13)
+				millisecEntry.insert(0,trackMilliseconds)
+
+				global millisecErrorWarning
+				millisecErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+				millisecErrorWarning.place(relx=0.55,rely=0.17)
+
+				instruction4 = tk.Label(frame,text = 'Bytes',fg='#ffffff',bg='#121212')
+				instruction4.place(relx=0.55,rely=0.2)
+				bytesEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+				bytesEntry.place(relx=0.55,rely=0.23)
+				bytesEntry.insert(0,trackBytes)
+
+				global bytesErrorWarning
+				bytesErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+				bytesErrorWarning.place(relx=0.55,rely=0.27)
+
+				instruction5 = tk.Label(frame,text = 'Enter Unit Price *',fg='#ffffff',bg='#121212')
+				instruction5.place(relx=0.55,rely=0.3)
+				unitPriceEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+				unitPriceEntry.place(relx=0.55,rely=0.33)
+				unitPriceEntry.insert(0,trackUnitPrice)
+
+				global unitPriceErrorWarning
+				unitPriceErrorWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+				unitPriceErrorWarning.place(relx=0.55,rely=0.37)
+
+				saveTrackButton = tk.Button(frame,text='Save',command=lambda: modTrack(username,isEmployee,trackId,trackNameEntry.get(),composerEntry.get(),millisecEntry.get(),bytesEntry.get(),unitPriceEntry.get()),width=15,height=2,fg='#575757')
+				saveTrackButton.place(relx=0.55,rely=0.45)
+
+				returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+				returnToAppButton.pack(side='bottom')
+	else:
+		trackNotFoundWarning['text'] = 'Some information is missing'
+		artistNotFoundWarning['text'] = 'Some information is missing'
+
+
+def modTrack(username,isEmployee,trackId,trackName,composer,millisec,bytes,unitPrice):
+	millisecErrorWarning['text'] = ''
+	bytesErrorWarning['text'] = ''
+	unitPriceErrorWarning['text'] = ''
+
+	composer = None if composer == '' else composer
+	bytes = None if bytes == '' else bytes
+
+	if len(trackName) > 0 and len(millisec) > 0 and len(unitPrice) > 0:
+
+		if isInt(millisec):
+			if isInt(bytes) or bytes == None:
+				if isFloat(unitPrice):
+
+					# EVERY ENTRY IS CORRECT, so we update the track
+					query = "UPDATE Track SET Name = %s, Composer = %s, Milliseconds = %s, Bytes = %s, UnitPrice = %s WHERE TrackId = %s"
+					cursor.execute(query,[trackName,composer,millisec,bytes,unitPrice,trackId])
+					connection.commit()
+
+					# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
+					if not isEmployee:
+						# get the customerid
+						query = """
+						SELECT c.CustomerId
+						FROM Customer c
+						WHERE c.username = %s
+						LIMIT 1
+						"""
+						cursor.execute(query,[username])
+						rows = cursor.fetchall()
+						customerid = str(rows[0][0])
+
+						query = """
+						INSERT INTO track_register (TrackId, CustomerId)
+						VALUES (%s,%s)
+						"""
+						cursor.execute(query,[newTrackId,customerid])
+						connection.commit()
+
+					mainApp(username,isEmployee)
+
+				else:
+					unitPriceErrorWarning['text'] = 'Unit price must be a number'
+			else:
+				bytesErrorWarning['text'] = 'Bytes must be an integer'
+		else:
+			millisecErrorWarning['text'] = 'Millisecongs must be an integer'
+	else:
+		millisecErrorWarning['text'] = '*Required informacion is missing'
+		bytesErrorWarning['text'] = '*Required informacion is missing'
+		unitPriceErrorWarning['text'] = '*Required informacion is missing'
 
 
 def deletePage(username,isEmployee):
@@ -773,8 +1108,8 @@ def deletePage(username,isEmployee):
 	spacer3 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
 	spacer3.pack(side='top')
 
-	delSongButton = tk.Button(frame,text='Song',command=lambda: delSong(username,isEmployee),width=20,height=2,fg='#575757')
-	delSongButton.pack(side='top')
+	delTrackButton = tk.Button(frame,text='Track',command=lambda: delTrack(username,isEmployee),width=20,height=2,fg='#575757')
+	delTrackButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
@@ -827,19 +1162,20 @@ def deleteArtist(username,isEmployee,artistName):
 		query = """
 		SELECT a.ArtistId
 		FROM Artist a
-		WHERE a.Name = '""" + artistName + """'
+		WHERE a.Name = %s
+		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[artistName])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
 			artistNotFoundWarning['text'] = 'Artist not found'
 		else:
 			#get the ArtistId
-			artistId = str(rows[0][0])
+			artistId = rows[0][0]
 
-			query = "DELETE FROM Artist WHERE ArtistId = "+ artistId +""
-			cursor.execute(query)
+			query = "DELETE FROM Artist WHERE ArtistId = %s"
+			cursor.execute(query,[artistId])
 			connection.commit()
 			mainApp(username,isEmployee)
 	else:
@@ -906,33 +1242,34 @@ def deleteAlbum(username,isEmployee,albumTitle,artistName):
 		query = """
 		SELECT a.ArtistId
 		FROM Artist a
-		WHERE a.Name = '""" + artistName + """'
+		WHERE a.Name = %s
+		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[artistName])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
 			artistNotFoundWarning['text'] = 'Artist not found'
 		else:
 			#get the ArtistId
-			artistId = str(rows[0][0])
+			artistId = rows[0][0]
 
 			query = """
 			SELECT a.AlbumId
 			FROM Album a
-			WHERE a.ArtistId = """ + artistId + """ AND a.Title = '""" + albumTitle + """'
+			WHERE a.ArtistId = %s AND a.Title = %s
+			LIMIT 1
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[artistId,albumTitle])
 			rows = cursor.fetchall()
 			
 			if len(rows) <= 0:
 				albumNotFoundWarning['text'] = 'Album not found'
 			else:
-				albumId = str(rows[0][0])
+				albumId = rows[0][0]
 
-				# TODO: delete album with albumid and artistid and all songs in album
-				query = "DELETE FROM Album WHERE AlbumId = "+ albumId +""
-				cursor.execute(query)
+				query = "DELETE FROM Album WHERE AlbumId = %s"
+				cursor.execute(query,[albumId])
 				connection.commit()
 				mainApp(username,isEmployee)
 	else:
@@ -940,8 +1277,8 @@ def deleteAlbum(username,isEmployee,albumTitle,artistName):
 		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
-def delSong(username,isEmployee):
-	root.title('Delete Song')
+def delTrack(username,isEmployee):
+	root.title('Delete Track')
 
 	global canvas
 	canvas.destroy()
@@ -960,14 +1297,14 @@ def delSong(username,isEmployee):
 	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
 	spacer1.pack(side='top')
 
-	instruction1 = tk.Label(frame,text = 'Enter Song Name',fg='#ffffff',bg='#121212')
+	instruction1 = tk.Label(frame,text = 'Enter Track Name',fg='#ffffff',bg='#121212')
 	instruction1.pack(side='top')
-	songNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
-	songNameEntry.pack(side='top')
+	trackNameEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	trackNameEntry.pack(side='top')
 
-	global songNotFoundWarning
-	songNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
-	songNotFoundWarning.pack(side='top')
+	global trackNotFoundWarning
+	trackNotFoundWarning = tk.Label(frame,text='',font='Arial 10',bg='#121212',fg='#e74c3c')
+	trackNotFoundWarning.pack(side='top')
 
 	spacer2 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer2.pack(side='top')
@@ -984,15 +1321,15 @@ def delSong(username,isEmployee):
 	spacer3 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacer3.pack(side='top')
 
-	regAlbumButton = tk.Button(frame,text='Delete',command=lambda: deleteSong(username,isEmployee,songNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
-	regAlbumButton.pack(side='top')
+	delTrackButton = tk.Button(frame,text='Delete',command=lambda: deleteTrack(username,isEmployee,trackNameEntry.get(),artistNameEntry.get()),width=15,height=2,fg='#575757')
+	delTrackButton.pack(side='top')
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def deleteSong(username,isEmployee,trackName,artistName):
-	songNotFoundWarning['text'] = ''
+def deleteTrack(username,isEmployee,trackName,artistName):
+	trackNotFoundWarning['text'] = ''
 	artistNotFoundWarning['text'] = ''
 
 	if len(trackName) > 0 and len(artistName) > 0:
@@ -1001,14 +1338,14 @@ def deleteSong(username,isEmployee,trackName,artistName):
 		query = """
 		SELECT t.TrackId
 		FROM Track t
-		WHERE t.Name = '""" + trackName + """'
+		WHERE t.Name = %s
 		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[trackName])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
-			songNotFoundWarning['text'] = 'Song not found'
+			trackNotFoundWarning['text'] = 'Track not found'
 		else:
 
 			# CHECK THE ARTIST MATCHES THE TRACK NAME
@@ -1017,22 +1354,22 @@ def deleteSong(username,isEmployee,trackName,artistName):
 			FROM Track 
 			JOIN Album ON Album.AlbumId = Track.AlbumId
 			JOIN Artist ON Artist.ArtistId = Album.ArtistId
-			WHERE Artist.Name = '""" + artistName + """' AND Track.Name = '""" + trackName + """'
+			WHERE Artist.Name = %s AND Track.Name = %s
 			"""
-			cursor.execute(query)
+			cursor.execute(query,[artistName,trackName])
 			rows = cursor.fetchall()
 
 			if len(rows) <= 0:
 				artistNotFoundWarning['text'] = 'Artist for track not found'
 			else:
-				trackId = str(rows[0][0])
+				trackId = rows[0][0]
 
-				query = "DELETE FROM Track WHERE TrackId = "+ trackId +""
-				cursor.execute(query)
+				query = "DELETE FROM Track WHERE TrackId = %s"
+				cursor.execute(query,[trackId])
 				connection.commit()
 				mainApp(username,isEmployee)
 	else:
-		songNotFoundWarning['text'] = 'Some information is missing'
+		trackNotFoundWarning['text'] = 'Some information is missing'
 		artistNotFoundWarning['text'] = 'Some information is missing'
 
 
@@ -1063,7 +1400,7 @@ def statsPage(username,isEmployee):
 	stats1Button = tk.Button(frame,text=title1,command=lambda: displayStats(username,isEmployee,1,title1),width=40,height=2,fg='#575757')
 	stats1Button.place(relx=0.1,rely=0.2)
 
-	title2 = 'Genres with the most songs'
+	title2 = 'Genres with the most tracks'
 	stats2Button = tk.Button(frame,text=title2,command=lambda: displayStats(username,isEmployee,2,title2),width=40,height=2,fg='#575757')
 	stats2Button.place(relx=0.1,rely=0.35)
 
@@ -1071,16 +1408,16 @@ def statsPage(username,isEmployee):
 	stats3Button = tk.Button(frame,text=title3,command=lambda: displayStats(username,isEmployee,3,title3),width=40,height=2,fg='#575757')
 	stats3Button.place(relx=0.1,rely=0.5)
 
-	title4 = 'Longest songs'
+	title4 = 'Longest tracks'
 	stats4Button = tk.Button(frame,text=title4,command=lambda: displayStats(username,isEmployee,4,title4),width=40,height=2,fg='#575757')
 	stats4Button.place(relx=0.1,rely=0.65)
 
 	# Col 2
-	title5 = 'Users with the most registered songs'
+	title5 = 'Users with the most registered tracks'
 	stats5Button = tk.Button(frame,text=title5,command=lambda: displayStats(username,isEmployee,5,title5),width=40,height=2,fg='#575757')
 	stats5Button.place(relx=0.6,rely=0.2)
 
-	title6 = 'Average song duration per genre'
+	title6 = 'Average track duration per genre'
 	stats6Button = tk.Button(frame,text=title6,command=lambda: displayStats(username,isEmployee,6,title6),width=40,height=2,fg='#575757')
 	stats6Button.place(relx=0.6,rely=0.35)
 
@@ -1135,7 +1472,7 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 2:
-		statsTable = MultiColumnListbox(frame,['Genre','Song Count'])
+		statsTable = MultiColumnListbox(frame,['Genre','Track Count'])
 		query = """
 		SELECT genre.name, COUNT(genre.name) 
 		FROM track
@@ -1148,9 +1485,9 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 3:
-		statsTable = MultiColumnListbox(frame,['Playlist','Duration (Minutes)'])
+		statsTable = MultiColumnListbox(frame,['Playlist','Duration (min)'])
 		query = """
-		SELECT playlist.name, (SUM(milliseconds)/60000)
+		SELECT playlist.name, ROUND((SUM(milliseconds)/60000.0),2)
 		FROM playlist
 		JOIN playlisttrack ON playlist.playlistid = playlisttrack.playlistid
 		JOIN track ON playlisttrack.trackid = track.trackid
@@ -1160,9 +1497,9 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 4:
-		statsTable = MultiColumnListbox(frame,['Song','Duration (min)','Artist'])
+		statsTable = MultiColumnListbox(frame,['Track','Artist','Duration (min)'])
 		query = """
-		SELECT track.name, track.milliseconds/1000.0/60.0,artist.name
+		SELECT track.name, artist.name, ROUND(track.milliseconds/60000.0,2)
 		FROM track
 		JOIN album ON track.albumid = album.albumid
 		JOIN artist ON album.artistid = artist.artistid
@@ -1173,7 +1510,7 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 5:
-		statsTable = MultiColumnListbox(frame,['First Name','Last Name','Songs Registered'])
+		statsTable = MultiColumnListbox(frame,['First Name','Last Name','Tracks Registered'])
 		query = """
 		SELECT firstname, lastname, COUNT(trackid)
 		FROM track_register
@@ -1186,9 +1523,9 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 6:
-		statsTable = MultiColumnListbox(frame,['Genre','Average Minutes'])
+		statsTable = MultiColumnListbox(frame,['Genre','Average (min)'])
 		query = """
-		SELECT genre.name,(AVG(track.milliseconds)/1000)/60
+		SELECT genre.name,ROUND(AVG(track.milliseconds)/60000.0,2)
 		FROM track
 		JOIN genre ON track.genreid = genre.genreid
 		GROUP BY genre.name
@@ -1240,19 +1577,19 @@ def search(entry):
 		# searches are combined and displayed in the table for the user
 
 		query = """
-		SELECT r.trackName, r.artistName, r.albumTitle, r.genreName
+		SELECT r.trackName, r.artistName, r.Kind, r.albumTitle, r.genreName
 		FROM (
-			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Track.Name = '""" + entry + """'
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,MediaType.Name AS Kind,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId JOIN MediaType ON MediaType.MediaTypeId = Track.MediaTypeId WHERE Track.Name = %s
 			UNION
-			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Artist.Name = '""" + entry + """'
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,MediaType.Name AS Kind,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId JOIN MediaType ON MediaType.MediaTypeId = Track.MediaTypeId WHERE Artist.Name = %s
 			UNION
-			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Album.Title = '""" + entry + """'
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,MediaType.Name AS Kind,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId JOIN MediaType ON MediaType.MediaTypeId = Track.MediaTypeId WHERE Album.Title = %s
 			UNION
-			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId WHERE Genre.Name = '""" + entry + """'
+			SELECT Track.Active AS Active,Track.Name AS trackName,Artist.Name AS artistName,MediaType.Name AS Kind,Album.Title AS albumTitle,Genre.Name AS genreName FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId JOIN Genre ON Genre.GenreId = Track.GenreId JOIN MediaType ON MediaType.MediaTypeId = Track.MediaTypeId WHERE Genre.Name = %s
 		) r
 		WHERE r.Active = true
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[entry,entry,entry,entry])
 		rowsSearch = cursor.fetchall()
 		displaySearchResult(rowsSearch)
 
@@ -1303,10 +1640,10 @@ def validateCustomerId(username,customerid):
 		query = """
 		SELECT c.firstName,c.LastName
 		FROM Customer c
-		WHERE c.CustomerId = """ + customerid + """
+		WHERE c.CustomerId = %s
 		LIMIT 1
 		"""
-		cursor.execute(query)
+		cursor.execute(query,[customerid])
 		rows = cursor.fetchall()
 
 		if len(rows) <= 0:
@@ -1362,20 +1699,20 @@ def showManageUsersOptions(username,customerid,firstname,lastname):
 	returnToAppButton.pack(side='bottom')
 
 def allowInactivate(username,customerid):
-	query = "UPDATE Customer SET inactive_permission=true WHERE CustomerId = "+ customerid +" "
-	cursor.execute(query)
+	query = "UPDATE Customer SET inactive_permission=true WHERE CustomerId = %s"
+	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
 
 def allowModify(username,customerid):
-	query = "UPDATE Customer SET modify_permission=true WHERE CustomerId = "+ customerid +" "
-	cursor.execute(query)
+	query = "UPDATE Customer SET modify_permission=true WHERE CustomerId = %s"
+	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
 
 def allowDelete(username,customerid):
-	query = "UPDATE Customer SET delete_permission=true WHERE CustomerId = "+ customerid +" "
-	cursor.execute(query)
+	query = "UPDATE Customer SET delete_permission=true WHERE CustomerId = %s"
+	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
 
@@ -1448,7 +1785,7 @@ class MultiColumnListbox(object):
 				self.tree.insert('', 'end', values=row,tags=('odd'))
 
 			for ix, val in enumerate(row):
-				self.tree.column(self.columnsToShow[ix], width=int(1004/len(self.columnsToShow)))
+				self.tree.column(self.columnsToShow[ix], width=int(1008/len(self.columnsToShow)))
 
 	def updateData(self,rows):
 		for i in self.tree.get_children():
@@ -1534,22 +1871,22 @@ def signUp():
 	loginLogoLabel = tk.Label(frame,image=loginLogo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
 	loginLogoLabel.place(relx=0.47,rely=0.04)
 
-	usernameLabel = tk.Label(text = 'Username',fg='#ffffff',bg='#121212')
+	usernameLabel = tk.Label(text = 'Username*',fg='#ffffff',bg='#121212')
 	usernameLabel.place(relx=0.45,rely=0.15,relwidth=0.25,relheight=0.05)
 	username = tk.Entry(fg='#ffffff',bg='#171717')
 	username.place(relx=0.65,rely=0.15,relwidth=boxWidth,relheight=boxHeight)
 
-	passwordLabel = tk.Label(text = 'Password',fg='#ffffff',bg='#121212')
+	passwordLabel = tk.Label(text = 'Password*',fg='#ffffff',bg='#121212')
 	passwordLabel.place(relx=0.45,rely=0.22,relwidth=0.25,relheight=0.05)
 	password = tk.Entry(fg='#ffffff',bg='#171717')
 	password.place(relx=0.65,rely=0.22,relwidth=boxWidth,relheight=boxHeight)
 
-	firstNameLabel = tk.Label(text = 'First Name',fg='#ffffff',bg='#121212')
+	firstNameLabel = tk.Label(text = 'First Name*',fg='#ffffff',bg='#121212')
 	firstNameLabel.place(relx=0.05,rely=0.15,relwidth=0.25,relheight=0.05)
 	firstName = tk.Entry(fg='#ffffff',bg='#171717')
 	firstName.place(relx=0.25,rely=0.15,relwidth=boxWidth,relheight=boxHeight)
 
-	lastNameLabel = tk.Label(text = 'Last Name',fg='#ffffff',bg='#121212')
+	lastNameLabel = tk.Label(text = 'Last Name*',fg='#ffffff',bg='#121212')
 	lastNameLabel.place(relx=0.05,rely=0.22,relwidth=0.25,relheight=0.05)
 	lastName = tk.Entry(fg='#ffffff',bg='#171717')
 	lastName.place(relx=0.25,rely=0.22,relwidth=boxWidth,relheight=boxHeight)
@@ -1594,25 +1931,86 @@ def signUp():
 	fax = tk.Entry(fg='#ffffff',bg='#171717')
 	fax.place(relx=0.25,rely=0.78,relwidth=boxWidth,relheight=boxHeight)
 
-	emailLabel = tk.Label(text = 'Email',fg='#ffffff',bg='#121212')
+	emailLabel = tk.Label(text = 'Email*',fg='#ffffff',bg='#121212')
 	emailLabel.place(relx=0.05,rely=0.85,relwidth=0.25,relheight=0.05)
 	email = tk.Entry(fg='#ffffff',bg='#171717')
 	email.place(relx=0.25,rely=0.85,relwidth=boxWidth,relheight=boxHeight)
 
 	global regConfLabel
-	regConfLabel = tk.Label(text = ' ',font='Arial 12',bg='#121212',fg='#e74c3c')
+	regConfLabel = tk.Label(text = '',font='Arial 12',bg='#121212',fg='#e74c3c')
 	regConfLabel.place(relx=0.7,rely=0.3)
 
 	loginButton = tk.Button(text='Create',borderwidth=0, highlightthickness=0,command=lambda: createUser(username.get(),password.get(),firstName.get(),lastName.get(),company.get(),address.get(),city.get(),state.get(),country.get(),postalCode.get(),phone.get(),fax.get(),email.get()))
 	loginButton.place(relx=0.35,rely=0.95,relwidth=0.15)
 
-	signInButton = tk.Button(text='Go Back',borderwidth=0, highlightthickness=0,command=lambda: login(reload=True))
-	signInButton.place(relx=0.55,rely=0.95,relwidth=0.15)
+	goBackButton = tk.Button(text='Go Back',borderwidth=0, highlightthickness=0,command=lambda: login(reload=True))
+	goBackButton.place(relx=0.55,rely=0.95,relwidth=0.15)
+
+
+def createUser(username,password,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email):
+
+	company = None if company == '' else company
+	address = None if address == '' else address
+	city = None if city == '' else city
+	state = None if state == '' else state
+	country = None if country == '' else country
+	postalCode = None if postalCode == '' else postalCode
+	phone = None if phone == '' else phone
+	fax = None if fax == '' else fax
+
+	if (len(firstName) not in range(1,41)) or (len(lastName) not in range(1,21)) or (len(email) not in range(1,61)) or (len(username) not in range(1,11)) or (len(password) not in range(1,21)):
+		# not a valid register, show a red warning
+		regConfLabel['text'] = 'Invalid data lenght'
+	else:
+		# valid register but username may already exist
+
+		query = """
+		SELECT c.username
+		FROM Customer c
+		WHERE c.username = %s
+		LIMIT 1
+		"""
+		cursor.execute(query,[username])
+		rows = cursor.fetchall()
+		
+		if len(rows) > 0:
+			# then username already exists, show red warning
+			regConfLabel['text'] = 'Username already exists'
+		else:
+			# its a valid register with a unique username
+
+			# get the last custumer id added
+			query = """
+			SELECT c.CustomerId
+			FROM Customer c
+			ORDER BY c.CustomerId DESC
+			LIMIT 1
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+			newCustomerId = rows[0][0] + 1
+
+			# get a random employee id
+			query = """
+			SELECT e.EmployeeId
+			FROM Employee e
+			"""
+			cursor.execute(query)
+			rows = cursor.fetchall()
+			newSupportRepId = rows[random.randint(1,len(rows)-1)][0]
+
+			query = """
+			INSERT INTO Customer (username,passwrd,CustomerId,FirstName,LastName,Company,Address,City,State,Country,PostalCode,Phone,Fax,Email,SupportRepId) 
+			VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+			"""
+			cursor.execute(query,[username,password,newCustomerId,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email,newSupportRepId])
+			connection.commit()
+			login(reload=True)
 
 
 def returnPermissions(username):
-	query = "SELECT c.inactive_permission,c.modify_permission,c.delete_permission FROM Customer c WHERE c.username = '"+ username +"' LIMIT 1"
-	cursor.execute(query)
+	query = "SELECT c.inactive_permission,c.modify_permission,c.delete_permission FROM Customer c WHERE c.username = %s LIMIT 1"
+	cursor.execute(query,[username])
 	rows = cursor.fetchall()
 	return rows[0]
 
@@ -1637,7 +2035,7 @@ def mainApp(currentUsername,isEmployee):
 	logoutButton = tk.Button(frame,text='Logout',command=logout,width=10,height=1,fg='#575757')
 	logoutButton.pack(side='bottom')
 
-	manageLabel = tk.Label(frame,text='Manage Songs',font='Arial 11 bold',fg='#ffffff',bg='#101010')
+	manageLabel = tk.Label(frame,text='Manage Tracks',font='Arial 11 bold',fg='#ffffff',bg='#101010')
 	manageLabel.place(relx=0.9,rely=0.23)
 	registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 	registerButton.place(relx=0.9,rely=0.3)
@@ -1647,7 +2045,7 @@ def mainApp(currentUsername,isEmployee):
 		manageUsersButton = tk.Button(frame,text='Manage Users',command=lambda: requestCustomerId(currentUsername),width=20,height=1,fg='#575757')
 		manageUsersButton.pack(side='top')
 
-		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateTrackPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		inactivateButton.place(relx=0.9,rely=0.4)
 
 		modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
@@ -1662,13 +2060,10 @@ def mainApp(currentUsername,isEmployee):
 		# Customer permission
 		canInactivate,canModify,canDelete = returnPermissions(currentUsername)
 
-		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		statsButton.place(relx=0.9,rely=0.4)
-
-		posY = 0.5
+		posY = 0.4
 
 		if canInactivate:
-			inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateSongPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+			inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateTrackPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 			inactivateButton.place(relx=0.9,rely=posY)
 			posY += 0.1
 		if canModify:
@@ -1678,9 +2073,10 @@ def mainApp(currentUsername,isEmployee):
 		if canDelete:
 			deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 			deleteButton.place(relx=0.9,rely=posY)
+			posY += 0.1
 
-
-
+		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+		statsButton.place(relx=0.9,rely=posY)
 
 	# Soundic Logo
 	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
@@ -1706,8 +2102,7 @@ def mainApp(currentUsername,isEmployee):
 	loggedLabel.place(relx=0.65,rely=0.03)
 
 	global outputTable
-	outputTable = MultiColumnListbox(frame,['Songs','Artists','Albums','Genres'])
-
+	outputTable = MultiColumnListbox(frame,['Track','Artist','Kind','Album','Genre'])
 
 
 '''

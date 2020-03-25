@@ -68,6 +68,9 @@ JOIN MediaType mt ON mt.MediaTypeId = t.MediaTypeId
 GROUP BY mt.MediaTypeId
 ORDER BY COUNT(mt.MediaTypeId) DESC
 
--- 10. 
-
+-- 10. Countries that buy the most
+SELECT   BillingCountry, COUNT(BillingCountry)
+FROM Invoice 
+GROUP BY BillingCountry
+ORDER BY (COUNT(BillingCountry)) DESC
 

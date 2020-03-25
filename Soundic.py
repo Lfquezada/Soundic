@@ -1433,7 +1433,7 @@ def statsPage(username,isEmployee):
 	stats8Button = tk.Button(frame,text=title8,command=lambda: displayStats(username,isEmployee,8,title8),width=40,height=2,fg='#575757')
 	stats8Button.place(relx=0.6,rely=0.65)
 
-	title10 = 'Most popular genre by country'
+	title10 = 'Countries that buy the most'
 	stats10Button = tk.Button(frame,text=title10,command=lambda: displayStats(username,isEmployee,10,title10),width=40,height=2,fg='#575757')
 	stats10Button.place(relx=0.6,rely=0.8)
 
@@ -1583,7 +1583,18 @@ def displayStats(username,isEmployee,num,title):
 		rows = cursor.fetchall()
 		statsTable.updateData(rows)
 	if num == 10:
-		pass
+		statsTable = MultiColumnListbox(frame,['Billing Country','Purchases'])
+		query = """
+		SELECT   BillingCountry, COUNT(BillingCountry)
+		FROM Invoice 
+		GROUP BY BillingCountry
+		ORDER BY (COUNT(BillingCountry)) DESC
+		"""
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		statsTable.updateData(rows)
+		
+
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')

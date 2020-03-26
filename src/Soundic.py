@@ -959,6 +959,10 @@ def modTrackPage(username,isEmployee,trackName,artistName):
 				boxWidth = 0.28
 				col1Xpos = 0.23
 
+				trackComposer = '' if trackComposer == None else trackComposer
+				trackBytes = '' if trackBytes == None else trackBytes
+				
+
 				# Col 1
 
 				instruction1 = tk.Label(frame,text = 'Track Name *',fg='#ffffff',bg='#121212')

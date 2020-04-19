@@ -1038,26 +1038,6 @@ def modTrack(username,isEmployee,trackId,trackName,composer,millisec,bytes,unitP
 					cursor.execute(query,[trackName,composer,millisec,bytes,unitPrice,trackId])
 					connection.commit()
 
-					# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
-					if not isEmployee:
-						# get the customerid
-						query = """
-						SELECT c.CustomerId
-						FROM Customer c
-						WHERE c.username = %s
-						LIMIT 1
-						"""
-						cursor.execute(query,[username])
-						rows = cursor.fetchall()
-						customerid = str(rows[0][0])
-
-						query = """
-						INSERT INTO track_register (TrackId, CustomerId)
-						VALUES (%s,%s)
-						"""
-						cursor.execute(query,[newTrackId,customerid])
-						connection.commit()
-
 					mainApp(username,isEmployee)
 
 				else:

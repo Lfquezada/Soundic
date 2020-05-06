@@ -4,6 +4,7 @@ from tkinter import ttk
 import os
 import psycopg2 as pg
 import random
+import csv
 
 '''
 ------------------------------------------
@@ -1551,7 +1552,7 @@ def displayStats(username,isEmployee,num,title):
 	returnToStatsButton.pack(side='bottom')
 
 
-def search(entry):
+def search(entry,export):
 
 	entry = str(entry)
 
@@ -1575,7 +1576,19 @@ def search(entry):
 		"""
 		cursor.execute(query,[entry,entry,entry,entry])
 		rowsSearch = cursor.fetchall()
+
+		if export:
+			with open('search-export.csv', mode='w') as file:
+				file = csv.writer(file, delimiter=',')
+
+				file.writerow(('Track','Artist','Kind','Album','Genre'))
+
+				for row in rowsSearch:
+					file.writerow(row)
+
 		displaySearchResult(rowsSearch)
+
+
 
 
 def requestCustomerId(username):
@@ -2074,8 +2087,12 @@ def mainApp(currentUsername,isEmployee):
 	searchEntry.place(relx=0.005,rely=0.01,relwidth=0.25,relheight=0.05)
 
 	# Search Button
-	searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get()))
+	searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=False))
 	searchButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.042)
+
+	# Export Button
+	exportButton = tk.Button(frame,image=exportIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=True))
+	exportButton.place(relx=0.32,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Profile Button
 	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: showProfile(currentUsername,isEmployee))
@@ -2103,6 +2120,7 @@ loginLogo = tk.PhotoImage(file='assets/logo-login.png')
 logo = tk.PhotoImage(file='assets/logo-soundic.png')
 searchIcon = tk.PhotoImage(file='assets/icon-search.png')
 userIcon = tk.PhotoImage(file='assets/icon-user.png')
+exportIcon = tk.PhotoImage(file='assets/icon-export.png')
 
 login(reload=False)
 root.mainloop()

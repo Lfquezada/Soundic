@@ -1,7 +1,7 @@
 /*******************************************************************************
    Create Tables
 ********************************************************************************/
-DROP TABLE IF EXISTS Artist;
+DROP TABLE IF EXISTS Artist CASCADE;
 CREATE TABLE Artist
 (
     ArtistId INT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE Artist
     CONSTRAINT PK_Artist PRIMARY KEY (ArtistId)
 );
 
-DROP TABLE IF EXISTS Album;
+DROP TABLE IF EXISTS Album CASCADE;
 CREATE TABLE Album
 (
     AlbumId INT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE Album
     FOREIGN KEY (ArtistId) REFERENCES Artist (ArtistId) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-DROP TABLE IF EXISTS Employee;
+DROP TABLE IF EXISTS Employee CASCADE;
 CREATE TABLE Employee
 (
     EmployeeId INT NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE Employee
     FOREIGN KEY (ReportsTo) REFERENCES Employee (EmployeeId) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-DROP TABLE IF EXISTS Customer;
+DROP TABLE IF EXISTS Customer CASCADE;
 CREATE TABLE Customer
 (
     CustomerId INT NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE Customer
     FOREIGN KEY (SupportRepId) REFERENCES Employee (EmployeeId) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-DROP TABLE IF EXISTS Genre;
+DROP TABLE IF EXISTS Genre CASCADE;
 CREATE TABLE Genre
 (
     GenreId INT NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE Genre
     CONSTRAINT PK_Genre PRIMARY KEY (GenreId)
 );
 
-DROP TABLE IF EXISTS Invoice;
+DROP TABLE IF EXISTS Invoice CASCADE;
 CREATE TABLE Invoice
 (
     InvoiceId INT NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE Invoice
     FOREIGN KEY (CustomerId) REFERENCES Customer (CustomerId) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-DROP TABLE IF EXISTS MediaType;
+DROP TABLE IF EXISTS MediaType CASCADE;
 CREATE TABLE MediaType
 (
     MediaTypeId INT NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE MediaType
     CONSTRAINT PK_MediaType PRIMARY KEY (MediaTypeId)
 );
 
-DROP TABLE IF EXISTS Track;
+DROP TABLE IF EXISTS Track CASCADE;
 CREATE TABLE Track
 (
     TrackId INT NOT NULL,
@@ -111,7 +111,7 @@ CREATE TABLE Track
     FOREIGN KEY (MediaTypeId) REFERENCES MediaType (MediaTypeId) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-DROP TABLE IF EXISTS InvoiceLine;
+DROP TABLE IF EXISTS InvoiceLine CASCADE;
 CREATE TABLE InvoiceLine
 (
     InvoiceLineId INT NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE InvoiceLine
     FOREIGN KEY (TrackId) REFERENCES Track (TrackId) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-DROP TABLE IF EXISTS Playlist;
+DROP TABLE IF EXISTS Playlist CASCADE;
 CREATE TABLE Playlist
 (
     PlaylistId INT NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE Playlist
     CONSTRAINT PK_Playlist PRIMARY KEY (PlaylistId)
 );
 
-DROP TABLE IF EXISTS PlaylistTrack;
+DROP TABLE IF EXISTS PlaylistTrack CASCADE;
 CREATE TABLE PlaylistTrack
 (
     PlaylistId INT NOT NULL,
@@ -15953,3 +15953,93 @@ CREATE TABLE track_register
    FOREIGN KEY (TrackId) REFERENCES Track(TrackId) ON DELETE CASCADE ON UPDATE CASCADE,
    FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+DROP TABLE IF EXISTS Bitacora;
+CREATE TABLE Bitacora 
+(
+    ItemId INT NOT NULL,
+    CustomerId INT NOT NULL,
+    Operation VARCHAR(3) NOT NULL, -- del, mod & add
+    ItemType VARCHAR(6), -- artist, album, track
+    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP INDEX IF EXISTS IFK_itemId;
+CREATE INDEX IFK_itemId ON Bitacora (itemId);
+DROP INDEX IF EXISTS IFK_CustomerId;
+CREATE INDEX IFK_CustomerId ON Bitacora (CustomerId);
+
+CREATE VIEW BitacoraView AS
+SELECT date, operation, itemtype, Customer.FirstName, Customer.LastName, Customer.Email
+FROM Bitacora
+JOIN Customer ON Customer.CustomerId = Bitacora.CustomerId;
+
+
+-- Idea 1
+DROP FUNCTION IF EXISTS updateBitacora;
+CREATE OR REPLACE FUNCTION updateBitacora(itemId int, customerid int, operation varchar, itemtype varchar)RETURNS void AS $$
+	BEGIN
+		INSERT INTO Bitacora VALUES (itemId,customerid,operation,itemtype);
+	END;
+$$ LANGUAGE plpgsql;
+
+
+-- Idea 2
+CREATE OR REPLACE FUNCTION mofify_BitacoraTrack() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','track');
+            RETURN NEW;
+        ELSIF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','track');
+            RETURN NEW;
+        ELSIF (TG_OP = 'INSERT') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','track');
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION mofify_BitacoraAlbum() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','album');
+            RETURN NEW;
+        ELSIF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','album');
+            RETURN NEW;
+        ELSIF (TG_OP = 'INSERT') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','album');
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION mofify_BitacoraArtist() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','artist');
+            RETURN NEW;
+        ELSIF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','artist');
+            RETURN NEW;
+        ELSIF (TG_OP = 'INSERT') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','artist');
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mofify_Track_trigger
+BEFORE INSERT OR UPDATE OR DELETE ON Track
+FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraTrack();
+
+CREATE TRIGGER mofify_Album_trigger
+BEFORE INSERT OR UPDATE OR DELETE ON Album
+FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraAlbum();
+
+CREATE TRIGGER mofify_Artist_trigger
+BEFORE INSERT OR UPDATE OR DELETE ON Artist
+FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraArtist();
+

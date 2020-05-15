@@ -1552,6 +1552,40 @@ def displayStats(username,isEmployee,num,title):
 	returnToStatsButton.pack(side='bottom')
 
 
+def displayBitacora(username,isEmployee):
+	root.title('Soundic Binnacle')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer1.pack(side='top')
+
+	titleLabel = tk.Label(frame,text='Operations Binnacle',font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel.pack(side='top')
+
+	bitacoraTable = MultiColumnListbox(frame,['Date', 'Operation', 'Item', 'First Name', 'Last Name', 'Email'])
+	query = "SELECT * FROM BitacoraView"
+
+	cursor.execute(query)
+	rows = cursor.fetchall()
+	bitacoraTable.updateData(rows)
+		
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
 def search(entry,export):
 
 	entry = str(entry)
@@ -2053,6 +2087,9 @@ def mainApp(currentUsername,isEmployee):
 
 		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
 		statsButton.place(relx=0.9,rely=0.7)
+
+		bitacoraButton = tk.Button(frame,text='Binnacle',command=lambda: displayBitacora(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+		bitacoraButton.place(relx=0.9,rely=0.8)
 	else:
 		# Customer permission
 		canInactivate,canModify,canDelete = returnPermissions(currentUsername)

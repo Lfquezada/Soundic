@@ -15789,12 +15789,17 @@ INSERT INTO PlaylistTrack (PlaylistId, TrackId) VALUES (17, 2096);
 INSERT INTO PlaylistTrack (PlaylistId, TrackId) VALUES (17, 3290);
 INSERT INTO PlaylistTrack (PlaylistId, TrackId) VALUES (18, 597);
 
--- CAMBIOS
 
-ALTER TABLE customer
-ADD COLUMN username   character varying (10);
-ALTER TABLE customer
-ADD COLUMN passwrd   character varying (20);
+-- CAMBIOS a Customer
+
+ALTER TABLE customer ADD COLUMN username character varying (10);
+ALTER TABLE customer ADD COLUMN passwrd character varying (20);
+ALTER TABLE customer ADD COLUMN inactive_permission BOOLEAN;
+ALTER TABLE customer ADD COLUMN modify_permission BOOLEAN;
+ALTER TABLE customer ADD COLUMN delete_permission BOOLEAN;
+UPDATE customer SET inactive_permission = FALSE;
+UPDATE customer SET modify_permission = FALSE;
+UPDATE customer SET delete_permission = FALSE;
 
 UPDATE customer SET username='1GON' WHERE CustomerId =1;
 UPDATE customer SET passwrd='casa' WHERE CustomerId =1;
@@ -15915,8 +15920,12 @@ UPDATE customer SET passwrd='dulce' WHERE CustomerId =58;
 UPDATE customer SET username='59SRI' WHERE CustomerId =59;
 UPDATE customer SET passwrd='pinguino' WHERE CustomerId =59;
 
+
+-- CAMBIOS a Employee
+
 ALTER TABLE Employee ADD COLUMN username character varying (10);
 ALTER TABLE Employee ADD COLUMN passwrd character varying (20);
+
 UPDATE Employee SET username='ADA1' WHERE EmployeeId =1;
 UPDATE Employee SET passwrd='pijama' WHERE EmployeeId =1;
 UPDATE Employee SET username='EDW2' WHERE EmployeeId =2;
@@ -15934,15 +15943,20 @@ UPDATE Employee SET passwrd='rey' WHERE EmployeeId =7;
 UPDATE Employee SET username='CAL8' WHERE EmployeeId =8;
 UPDATE Employee SET passwrd='revista' WHERE EmployeeId =8;
 
+
+-- CAMBIOS a Track, Album, Artist
+
 ALTER TABLE Track ADD COLUMN Active BOOLEAN;
 UPDATE Track SET Active=TRUE;
+ALTER TABLE Track ADD COLUMN lastModBy character varying (10);
+UPDATE Track SET lastModBy = NULL;
+ALTER TABLE Album ADD COLUMN lastModBy character varying (10);
+UPDATE Album SET lastModBy = NULL;
+ALTER TABLE Artist ADD COLUMN lastModBy character varying (10);
+UPDATE Artist SET lastModBy = NULL;
 
-ALTER TABLE customer ADD COLUMN inactive_permission BOOLEAN;
-ALTER TABLE customer ADD COLUMN modify_permission BOOLEAN;
-ALTER TABLE customer ADD COLUMN delete_permission BOOLEAN;
-UPDATE customer SET inactive_permission=FALSE;
-UPDATE customer SET modify_permission=FALSE;
-UPDATE customer SET delete_permission=FALSE;
+
+-- Track Register (para la página de stats)
 
 DROP TABLE IF EXISTS track_register;
 CREATE TABLE track_register 
@@ -15954,6 +15968,9 @@ CREATE TABLE track_register
    FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+
+-- Bitacora
+
 DROP TABLE IF EXISTS Bitacora;
 CREATE TABLE Bitacora 
 (
@@ -15964,10 +15981,14 @@ CREATE TABLE Bitacora
     Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Indices Bitacora
+
 DROP INDEX IF EXISTS IFK_itemId;
 CREATE INDEX IFK_itemId ON Bitacora (itemId);
 DROP INDEX IF EXISTS IFK_CustomerId;
 CREATE INDEX IFK_CustomerId ON Bitacora (Username);
+
+-- Vista Bitacora
 
 CREATE OR REPLACE VIEW BitacoraView AS
 SELECT *
@@ -15982,12 +16003,7 @@ FROM (
 ) res
 ORDER BY date DESC;
 
-ALTER TABLE Track ADD COLUMN lastModBy character varying (10);
-UPDATE Track SET lastModBy = NULL;
-ALTER TABLE Album ADD COLUMN lastModBy character varying (10);
-UPDATE Album SET lastModBy = NULL;
-ALTER TABLE Artist ADD COLUMN lastModBy character varying (10);
-UPDATE Artist SET lastModBy = NULL;
+-- Triggers Bitacora
 
 CREATE OR REPLACE FUNCTION mofify_BitacoraTrack() RETURNS TRIGGER AS $$
     BEGIN
@@ -16043,4 +16059,94 @@ FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraAlbum();
 CREATE TRIGGER mofify_Artist_trigger
 BEFORE INSERT OR UPDATE ON Artist
 FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraArtist();
+
+
+-- Vistas de Stats
+
+--1. Top 5 Artistas con más albumes
+CREATE OR REPLACE VIEW stats1 AS
+SELECT artist.name,COUNT(artist.artistid)
+FROM album
+JOIN artist ON album.artistid = artist.artistid
+GROUP BY artist.artistid
+ORDER BY COUNT(artist.artistid) DESC
+LIMIT 5;
+
+--2.Top 5 Generos con mas canciones
+CREATE OR REPLACE VIEW stats2 AS
+SELECT genre.name, COUNT(genre.name) 
+FROM track
+JOIN genre on track.genreid = genre.genreid
+GROUP BY genre.name, genre.genreid 
+ORDER BY COUNT(genre.name) DESC
+LIMIT 5;
+
+--3.Total de duración de cada playlist
+CREATE OR REPLACE VIEW stats3 AS
+SELECT playlist.name, ROUND((SUM(milliseconds)/60000.0),2)
+FROM playlist
+JOIN playlisttrack ON playlist.playlistid = playlisttrack.playlistid
+JOIN track ON playlisttrack.trackid = track.trackid
+GROUP BY playlist.name;
+
+--4. Top 5 Canciones de mayor duración con la información de sus artistas
+CREATE OR REPLACE VIEW stats4 AS
+SELECT track.name as trackName, artist.name as artistName, ROUND(track.milliseconds/60000.0,2)
+FROM track
+JOIN album ON track.albumid = album.albumid
+JOIN artist ON album.artistid = artist.artistid
+ORDER BY track.milliseconds DESC
+LIMIT 5;
+
+--5. Top 5 Usuarios que han registrado más canciones
+CREATE OR REPLACE VIEW stats5 AS
+SELECT firstname, lastname, COUNT(trackid)
+FROM track_register
+JOIN customer ON track_register.customerid = customer.customerid
+GROUP BY track_register.customerid,firstname,lastname
+ORDER BY COUNT(trackid) DESC
+LIMIT 5;
+
+--6.Promedio de duración de canciones por género
+CREATE OR REPLACE VIEW stats6 AS
+SELECT genre.name,ROUND(AVG(track.milliseconds)/60000.0,2)
+FROM track
+JOIN genre ON track.genreid = genre.genreid
+GROUP BY genre.name
+ORDER BY ((AVG(track.milliseconds)/1000)/60) DESC;
+
+--7.Cantidad de artistas diferentes por playlist (return 'Playlist','Artist Count')
+CREATE OR REPLACE VIEW stats7 AS
+SELECT playlist.name, COUNT(DISTINCT artist.name)
+FROM playlisttrack
+JOIN playlist on playlisttrack.playlistid = playlist.playlistid
+JOIN track on playlisttrack.trackid = track.trackid
+JOIN album on track.albumid = album.albumid
+JOIN artist on album.artistid = artist.artistid
+GROUP BY playlist.name;
+
+--8. Top 5 Artistas con más diversidad de géneros musicales (return 'Artist','Genre Count')
+CREATE OR REPLACE VIEW stats8 AS
+SELECT artist.name, COUNT(DISTINCT genreid)
+FROM track
+JOIN album on track.albumid = album.albumid
+JOIN artist on album.artistid = artist.artistid
+GROUP BY artist.name
+ORDER BY COUNT(DISTINCT genreid) DESC
+LIMIT 5;
+
+-- 9. Most used MediaType
+CREATE OR REPLACE VIEW stats9 AS
+SELECT mt.Name, COUNT(mt.MediaTypeId)
+FROM Track t
+JOIN MediaType mt ON mt.MediaTypeId = t.MediaTypeId
+GROUP BY mt.MediaTypeId
+ORDER BY COUNT(mt.MediaTypeId) DESC;
+
+-- 10. Countries that buy the most
+CREATE OR REPLACE VIEW stats10 AS
+SELECT   BillingCountry, COUNT(BillingCountry)
+FROM Invoice 
+GROUP BY BillingCountry
+ORDER BY (COUNT(BillingCountry)) DESC;
 

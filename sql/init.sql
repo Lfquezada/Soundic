@@ -15915,8 +15915,8 @@ UPDATE customer SET passwrd='dulce' WHERE CustomerId =58;
 UPDATE customer SET username='59SRI' WHERE CustomerId =59;
 UPDATE customer SET passwrd='pinguino' WHERE CustomerId =59;
 
-ALTER TABLE Employee ADD COLUMN username   character varying (10);
-ALTER TABLE Employee ADD COLUMN passwrd   character varying (20);
+ALTER TABLE Employee ADD COLUMN username character varying (10);
+ALTER TABLE Employee ADD COLUMN passwrd character varying (20);
 UPDATE Employee SET username='ADA1' WHERE EmployeeId =1;
 UPDATE Employee SET passwrd='pijama' WHERE EmployeeId =1;
 UPDATE Employee SET username='EDW2' WHERE EmployeeId =2;
@@ -15958,44 +15958,44 @@ DROP TABLE IF EXISTS Bitacora;
 CREATE TABLE Bitacora 
 (
     ItemId INT NOT NULL,
-    CustomerId INT NOT NULL,
-    Operation VARCHAR(3) NOT NULL, -- del, mod & add
+    Username VARCHAR(10) NOT NULL,
+    Operation VARCHAR(8) NOT NULL, -- delete, modify & register
     ItemType VARCHAR(6), -- artist, album, track
-    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE CASCADE ON UPDATE CASCADE
+    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 DROP INDEX IF EXISTS IFK_itemId;
 CREATE INDEX IFK_itemId ON Bitacora (itemId);
 DROP INDEX IF EXISTS IFK_CustomerId;
-CREATE INDEX IFK_CustomerId ON Bitacora (CustomerId);
+CREATE INDEX IFK_CustomerId ON Bitacora (Username);
 
-CREATE VIEW BitacoraView AS
-SELECT date, operation, itemtype, Customer.FirstName, Customer.LastName, Customer.Email
-FROM Bitacora
-JOIN Customer ON Customer.CustomerId = Bitacora.CustomerId;
+CREATE OR REPLACE VIEW BitacoraView AS
+SELECT *
+FROM (
+    SELECT date, operation, itemtype, itemid, Bitacora.username, CONCAT(Customer.FirstName,' ',Customer.LastName) as name
+    FROM Bitacora
+    JOIN Customer ON Customer.username = Bitacora.username
+    UNION
+    SELECT date, operation, itemtype, itemid, Bitacora.username, CONCAT(Employee.FirstName,' ',Employee.LastName) as name
+    FROM Bitacora
+    JOIN Employee ON Employee.username = Bitacora.username
+) res
+ORDER BY date DESC;
 
+ALTER TABLE Track ADD COLUMN lastModBy character varying (10);
+UPDATE Track SET lastModBy = NULL;
+ALTER TABLE Album ADD COLUMN lastModBy character varying (10);
+UPDATE Album SET lastModBy = NULL;
+ALTER TABLE Artist ADD COLUMN lastModBy character varying (10);
+UPDATE Artist SET lastModBy = NULL;
 
--- Idea 1
-DROP FUNCTION IF EXISTS updateBitacora;
-CREATE OR REPLACE FUNCTION updateBitacora(itemId int, customerid int, operation varchar, itemtype varchar)RETURNS void AS $$
-	BEGIN
-		INSERT INTO Bitacora VALUES (itemId,customerid,operation,itemtype);
-	END;
-$$ LANGUAGE plpgsql;
-
-
--- Idea 2
 CREATE OR REPLACE FUNCTION mofify_BitacoraTrack() RETURNS TRIGGER AS $$
     BEGIN
-        IF (TG_OP = 'DELETE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','track');
-            RETURN NEW;
-        ELSIF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','track');
+        IF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'modify','track');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','track');
+            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'register','track');
             RETURN NEW;
         END IF;
     END;
@@ -16003,14 +16003,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION mofify_BitacoraAlbum() RETURNS TRIGGER AS $$
     BEGIN
-        IF (TG_OP = 'DELETE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','album');
-            RETURN NEW;
-        ELSIF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','album');
+        IF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'modify','album');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','album');
+            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'register','album');
             RETURN NEW;
         END IF;
     END;
@@ -16018,28 +16015,32 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION mofify_BitacoraArtist() RETURNS TRIGGER AS $$
     BEGIN
-        IF (TG_OP = 'DELETE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'del','artist');
-            RETURN NEW;
-        ELSIF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'mod','artist');
+        IF (TG_OP = 'UPDATE') THEN
+            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'modify','artist');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, customerid,'add','artist');
+            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'register','artist');
             RETURN NEW;
         END IF;
     END;
 $$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS registerDelete;
+CREATE OR REPLACE FUNCTION registerDelete(itemId int, username varchar, itemtype varchar) RETURNS void AS $$
+    BEGIN
+        INSERT INTO Bitacora VALUES (itemid, username,'delete',itemtype);
+    END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER mofify_Track_trigger
-BEFORE INSERT OR UPDATE OR DELETE ON Track
+BEFORE INSERT OR UPDATE ON Track
 FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraTrack();
 
 CREATE TRIGGER mofify_Album_trigger
-BEFORE INSERT OR UPDATE OR DELETE ON Album
+BEFORE INSERT OR UPDATE ON Album
 FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraAlbum();
 
 CREATE TRIGGER mofify_Artist_trigger
-BEFORE INSERT OR UPDATE OR DELETE ON Artist
+BEFORE INSERT OR UPDATE ON Artist
 FOR EACH ROW EXECUTE PROCEDURE mofify_BitacoraArtist();
 

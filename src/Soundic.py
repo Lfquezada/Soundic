@@ -355,10 +355,10 @@ def createArtist(username,isEmployee,artistName):
 			newArtistId = rows[0][0] + 1
 
 			query = """
-			INSERT INTO Artist (ArtistId,Name) 
-			VALUES (%s,%s);
+			INSERT INTO Artist (ArtistId,Name,lastModBy) 
+			VALUES (%s,%s,%s);
 			"""
-			cursor.execute(query,[newArtistId,artistName])
+			cursor.execute(query,[newArtistId,artistName,username])
 			connection.commit()
 			mainApp(username,isEmployee)
 	else:
@@ -397,10 +397,10 @@ def createAlbum(username,isEmployee,albumTitle,artistName):
 			newAlbumId = rows[0][0] + 1
 
 			query = """
-			INSERT INTO Album (AlbumId,Title,ArtistId) 
-			VALUES (%s,%s,%s);
+			INSERT INTO Album (AlbumId,Title,ArtistId,lastModBy) 
+			VALUES (%s,%s,%s,%s);
 			"""
-			cursor.execute(query,[newAlbumId,albumTitle,artistId])
+			cursor.execute(query,[newAlbumId,albumTitle,artistId,username])
 			connection.commit()
 			mainApp(username,isEmployee)
 	else:
@@ -486,10 +486,10 @@ def createTrack(username,isEmployee,trackName,albumTitle,mediaType,genreName,com
 							newTrackId = rows[0][0] + 1
 
 							query = """
-							INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice,Active)
-							VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+							INSERT INTO Track (TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice,Active,lastModBy)
+							VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 							"""
-							cursor.execute(query,[newTrackId,trackName,albumId,mediaTypeId,genreId,composer,millisec,bytes,unitPrice,True])
+							cursor.execute(query,[newTrackId,trackName,albumId,mediaTypeId,genreId,composer,millisec,bytes,unitPrice,True,username])
 							connection.commit()
 
 							# SAVE THE CUSTOMER WHO REGISTERED THE TRACK
@@ -742,8 +742,8 @@ def modArtist(username,isEmployee,artistName,newArtistName):
 				#get the ArtistId
 				artistId = rows[0][0]
 
-				query = "UPDATE Artist SET Name = %s WHERE ArtistId = %s"
-				cursor.execute(query,[newArtistName,artistId])
+				query = "UPDATE Artist SET Name = %s, lastModBy = %s WHERE ArtistId = %s"
+				cursor.execute(query,[newArtistName,username,artistId])
 				connection.commit()
 				mainApp(username,isEmployee)
 		else:
@@ -843,8 +843,8 @@ def modAlbum(username,isEmployee,albumTitle,artistName,newAlbumTitle):
 			else:
 				albumId = rows[0][0]
 
-				query = "UPDATE Album SET Title = %s WHERE AlbumId = %s AND ArtistId = %s"
-				cursor.execute(query,[newAlbumTitle,albumId,artistId])
+				query = "UPDATE Album SET Title = %s, lastModBy = %s WHERE AlbumId = %s AND ArtistId = %s"
+				cursor.execute(query,[newAlbumTitle,username,albumId,artistId])
 				connection.commit()
 				mainApp(username,isEmployee)
 	else:
@@ -1035,8 +1035,8 @@ def modTrack(username,isEmployee,trackId,trackName,composer,millisec,bytes,unitP
 				if isFloat(unitPrice):
 
 					# EVERY ENTRY IS CORRECT, so we update the track
-					query = "UPDATE Track SET Name = %s, Composer = %s, Milliseconds = %s, Bytes = %s, UnitPrice = %s WHERE TrackId = %s"
-					cursor.execute(query,[trackName,composer,millisec,bytes,unitPrice,trackId])
+					query = "UPDATE Track SET Name = %s, Composer = %s, Milliseconds = %s, Bytes = %s, UnitPrice = %s, lastModBy = %s WHERE TrackId = %s"
+					cursor.execute(query,[trackName,composer,millisec,bytes,unitPrice,username,trackId])
 					connection.commit()
 
 					mainApp(username,isEmployee)
@@ -1155,6 +1155,8 @@ def deleteArtist(username,isEmployee,artistName):
 			#get the ArtistId
 			artistId = rows[0][0]
 
+			query = "SELECT * FROM registerDelete(%s,%s,%s);"
+			cursor.execute(query,[artistId,username,'artist'])
 			query = "DELETE FROM Artist WHERE ArtistId = %s"
 			cursor.execute(query,[artistId])
 			connection.commit()
@@ -1249,6 +1251,8 @@ def deleteAlbum(username,isEmployee,albumTitle,artistName):
 			else:
 				albumId = rows[0][0]
 
+				query = "SELECT * FROM registerDelete(%s,%s,%s);"
+				cursor.execute(query,[albumId,username,'album'])
 				query = "DELETE FROM Album WHERE AlbumId = %s"
 				cursor.execute(query,[albumId])
 				connection.commit()
@@ -1345,6 +1349,8 @@ def deleteTrack(username,isEmployee,trackName,artistName):
 			else:
 				trackId = rows[0][0]
 
+				query = "SELECT * FROM registerDelete(%s,%s,%s);"
+				cursor.execute(query,[trackId,username,'track'])
 				query = "DELETE FROM Track WHERE TrackId = %s"
 				cursor.execute(query,[trackId])
 				connection.commit()
@@ -1575,7 +1581,7 @@ def displayBitacora(username,isEmployee):
 	titleLabel = tk.Label(frame,text='Operations Binnacle',font='Arial 25 bold',bg='#121212',fg='white')
 	titleLabel.pack(side='top')
 
-	bitacoraTable = MultiColumnListbox(frame,['Date', 'Operation', 'Item', 'First Name', 'Last Name', 'Email'])
+	bitacoraTable = MultiColumnListbox(frame,['Date', 'Operation', 'Item Type', 'Item ID', 'Username', 'Name'])
 	query = "SELECT * FROM BitacoraView"
 
 	cursor.execute(query)
@@ -1999,9 +2005,12 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 		SELECT c.username
 		FROM Customer c
 		WHERE c.username = %s
-		LIMIT 1
+		UNION
+		SELECT e.username
+		FROM Employee e
+		WHERE e.username = %s
 		"""
-		cursor.execute(query,[username])
+		cursor.execute(query,[username,username])
 		rows = cursor.fetchall()
 		
 		if len(rows) > 0:
@@ -2031,10 +2040,10 @@ def createUser(username,password,firstName,lastName,company,address,city,state,c
 			newSupportRepId = rows[random.randint(1,len(rows)-1)][0]
 
 			query = """
-			INSERT INTO Customer (username,passwrd,CustomerId,FirstName,LastName,Company,Address,City,State,Country,PostalCode,Phone,Fax,Email,SupportRepId) 
-			VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+			INSERT INTO Customer (username,passwrd,CustomerId,FirstName,LastName,Company,Address,City,State,Country,PostalCode,Phone,Fax,Email,SupportRepId,inactive_permission,modify_permission,delete_permission) 
+			VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
 			"""
-			cursor.execute(query,[username,password,newCustomerId,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email,newSupportRepId])
+			cursor.execute(query,[username,password,newCustomerId,firstName,lastName,company,address,city,state,country,postalCode,phone,fax,email,newSupportRepId,False,False,False])
 			connection.commit()
 			login(reload=True)
 

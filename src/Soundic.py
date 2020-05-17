@@ -1,6 +1,6 @@
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk,messagebox
 import os
 import psycopg2 as pg
 import random
@@ -1515,14 +1515,203 @@ def displayBitacora(username,isEmployee):
 	titleLabel.pack(side='top')
 
 	bitacoraTable = MultiColumnListbox(frame,['Date', 'Operation', 'Item Type', 'Item ID', 'Username', 'Name'])
-	query = "SELECT * FROM BitacoraView"
 
-	cursor.execute(query)
+	cursor.execute('SELECT * FROM BitacoraView')
 	rows = cursor.fetchall()
 	bitacoraTable.updateData(rows)
 		
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
+
+
+def simulationPage(username,isEmployee):
+	root.title('Soundic Sales Simulation')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacerTop = tk.Label(frame,text='',font='Arial 70',bg='#121212')
+	spacerTop.pack(side='top')
+
+	titleLabel = tk.Label(frame,text='Sales Simulation',font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel.pack(side='top')
+
+	spacer1 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
+	spacer1.pack(side='top')
+
+	instruction1 = tk.Label(frame,text = 'Enter Amount of Invoices',fg='#ffffff',bg='#121212')
+	instruction1.pack(side='top')
+	invoiceAmountEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	invoiceAmountEntry.pack(side='top')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	spacer2.pack(side='top')
+
+	instruction2 = tk.Label(frame,text = 'Enter Year',fg='#ffffff',bg='#121212')
+	instruction2.pack(side='top')
+	yearEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	yearEntry.pack(side='top')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	spacer3.pack(side='top')
+
+	instruction3 = tk.Label(frame,text = 'Enter Month',fg='#ffffff',bg='#121212')
+	instruction3.pack(side='top')
+	monthEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	monthEntry.pack(side='top')
+
+	spacer4 = tk.Label(frame,text='',font='Arial 10',bg='#121212')
+	spacer4.pack(side='top')
+
+	instruction4 = tk.Label(frame,text = 'Enter Day',fg='#ffffff',bg='#121212')
+	instruction4.pack(side='top')
+	dayEntry = tk.Entry(frame,fg='#ffffff',bg='#171717')
+	dayEntry.pack(side='top')
+
+	spacer5 = tk.Label(frame,text='',font='Arial 20',bg='#121212')
+	spacer5.pack(side='top')
+
+	simulateButton = tk.Button(frame,text='Simulate',command=lambda: simulateSales(username,isEmployee,invoiceAmountEntry.get(),yearEntry.get(),monthEntry.get(),dayEntry.get()),width=15,height=2,fg='#575757')
+	simulateButton.pack(side='top')
+		
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
+def simulateSales(username,isEmployee,invociesToSimulate,year,month,day):
+
+	if isInt(invociesToSimulate) and isInt(year) and isInt(month) and isInt(day):
+
+		try:
+
+			invociesToSimulate = int(invociesToSimulate)
+
+			# General
+			countries = ['Suriname', 'Uruguay', 'Gambia', 'Malawi', 'Central African Republic', 'Burundi', 'Mongolia', 'Afghanistan', 'Anguilla', 'Mexico', 'United Arab Emirates', 'Bangladesh', 'Sierra Leone', 'British Virgin Islands', 'Nigeria', 'Yemen', 'Algeria', 'Samoa', 'United States Minor Outlying Islands', 'French Polynesia', 'Saint Lucia', 'Zambia', 'Sudan', 'Belize', 'French Southern Territories', 'Fiji', 'Korea', 'Uzbekistan', 'Saint Helena', 'Anguilla', 'Timor-Leste', 'Sweden', 'Wallis and Futuna', 'Bulgaria', 'Guatemala', 'Papua New Guinea', 'Belgium', 'Isle of Man', 'Switzerland', 'Nigeria', 'Saint Pierre and Miquelon', 'French Guiana', 'Seychelles', 'Mali', 'Qatar', 'Saudi Arabia', "Lao People's Democratic Republic", 'Suriname', 'Timor-Leste', 'Guernsey', 'Tokelau', 'Mexico', 'Mayotte', 'Oman', 'British Virgin Islands', 'Canada', 'India', 'Grenada', 'Haiti', 'Macao', "Lao People's Democratic Republic", 'Zambia', 'Turkey', 'Saint Pierre and Miquelon', 'Tonga', 'Lebanon', 'American Samoa', 'El Salvador', 'Netherlands Antilles', 'Guinea', 'Dominica', 'Nauru', 'Philippines', 'Namibia', 'Vietnam', 'Sao Tome and Principe', 'Timor-Leste', 'United States Minor Outlying Islands', 'Nigeria', 'Isle of Man', 'Colombia', 'Antigua and Barbuda', 'Greenland', 'Albania', 'Svalbard & Jan Mayen Islands', 'American Samoa', 'Guinea-Bissau', 'French Guiana', 'French Southern Territories', 'Papua New Guinea', 'Kuwait', 'Mexico', 'Angola', 'Marshall Islands', 'Syrian Arab Republic', 'Cambodia', 'Indonesia', 'Tonga', 'Monaco', 'Bouvet Island (Bouvetoya)', 'Finland', 'Central African Republic', 'United States of America', 'Liberia', 'Saint Lucia', 'Ghana', 'Nicaragua', 'Micronesia', 'Reunion', 'Egypt', 'French Southern Territories', 'Pakistan', 'Saudi Arabia', 'Palestinian Territory', 'Portugal', 'Nicaragua', 'Nepal', 'Paraguay', 'Israel', 'Isle of Man', 'Cameroon', 'Grenada', 'Holy See (Vatican City State)', 'Holy See (Vatican City State)', 'Botswana', 'Singapore', "Lao People's Democratic Republic", 'Kazakhstan', 'Luxembourg', 'Austria', 'Micronesia', 'Mauritania', 'Maldives', 'Niger', 'Malta', 'Kiribati', 'Thailand', 'Lebanon', 'Venezuela', 'Finland', "Lao People's Democratic Republic", 'Colombia', 'Suriname', 'Belize', 'Djibouti', 'Equatorial Guinea', 'Lithuania', 'Heard Island and McDonald Islands', 'Bolivia', 'Nepal', 'Guyana', 'Cook Islands', 'Portugal', 'Kuwait', 'Falkland Islands (Malvinas)', 'Peru', 'Mali', 'Mozambique', 'Venezuela', 'French Guiana', 'Uzbekistan', 'Saint Lucia', 'New Caledonia', 'Reunion', 'Korea', 'Brazil', 'Bangladesh', 'United States Minor Outlying Islands', 'Solomon Islands', 'New Caledonia', 'Singapore', 'Qatar', 'Greenland', 'Tokelau', 'Cameroon', 'Belarus', 'Zambia', 'Norway', 'Chile', 'Monaco', 'Somalia', 'Niue', 'Luxembourg', 'Sao Tome and Principe', 'Saint Pierre and Miquelon', 'Guinea', 'Eritrea', 'Serbia', 'El Salvador', 'Morocco', 'Kenya', 'Iran', 'Gibraltar', 'Sierra Leone', 'Central African Republic', 'Gibraltar', 'Spain', 'Bulgaria', 'Afghanistan']
+
+			trackIds = []
+			cursor.execute('SELECT TrackId FROM Track')
+			rows = cursor.fetchall()
+			for id in rows:
+				trackIds.append(id)
+
+			# Maxes
+			cursor.execute('SELECT MAX(CustomerId) FROM Customer')
+			rows = cursor.fetchall()
+			maxCustomerId = rows[0][0]
+
+			cursor.execute('SELECT MAX(InvoiceLineId) FROM InvoiceLine')
+			rows = cursor.fetchall()
+			invoiceLineId = rows[0][0]
+
+			cursor.execute('SELECT MAX(InvoiceId) FROM Invoice')
+			rows = cursor.fetchall()
+			invoiceId = rows[0][0]
+
+			for i in range(invociesToSimulate):
+
+				invoiceLinesToSimulate = random.randint(1,3)
+
+				simInvoiceLineIds = []
+				simTrackIds = []
+				simUnitPrices = []
+				simQuantities = []
+
+				for i in range(invoiceLinesToSimulate):
+					invoiceLineId += 1
+					simInvoiceLineIds.append(invoiceLineId)
+
+					# Random TrackId
+					simTrackIds.append(random.choice(trackIds))
+
+					# Unit Price
+					query = 'SELECT unitPrice FROM track WHERE TrackId = %s'
+					cursor.execute(query,[simTrackIds[i]])
+					rows = cursor.fetchall()
+					simUnitPrices.append(rows[0][0])
+
+					# Random Quantity
+					simQuantities.append(random.randint(1,3))
+
+				invoiceId += 1
+
+				# Random CustomerId
+				randomCustomerId = random.randint(1,maxCustomerId)
+
+				# Random Date
+				date = str(year) + '/' + str(month) + '/' + str(day)
+
+				# Random Country
+				randomCountry = random.choice(countries)
+
+				# Random Postal Code
+				randomPostalCode = random.randint(10000,99999)
+
+				# Total
+				total = 0.0
+				for i in range(len(simUnitPrices)):
+					total += float(simUnitPrices[i]) * float(simQuantities[i])
+
+				# Insert changes & commit
+				query = 'INSERT INTO Invoice (InvoiceId, CustomerId, InvoiceDate, BillingAddress, BillingCity, BillingCountry, BillingPostalCode, Total) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'
+				cursor.execute(query,[invoiceId,randomCustomerId,date,None,None,randomCountry,randomPostalCode,total])
+				connection.commit()
+
+				for i in range(invoiceLinesToSimulate):
+					query = 'INSERT INTO InvoiceLine (InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity) VALUES (%s,%s,%s,%s,%s)'
+					cursor.execute(query,[simInvoiceLineIds[i],invoiceId,simTrackIds[i],simUnitPrices[i],simQuantities[i]])
+					
+					# Simulate Plays for the songs bought
+					randomPlays = random.randint(1,10)
+					for x in range(randomPlays):
+						cursor.execute('SELECT * from playTrack(%s,%s)',[randomCustomerId,simTrackIds[i]])
+						
+					connection.commit()
+
+			messagebox.showinfo('Simulation', "Simulation ended successfuly")
+
+			mainApp(username,isEmployee)
+		except:
+			messagebox.showerror("Error", "A problem occured while simulating")
+
+
+def showConfirmation(text,confirmed):
+
+	# Set up window
+	confWindow = tk.Tk()
+	confWindow.title(" ")
+
+	canvas2 = tk.Canvas(confWindow,height=125,width=400,bg='#121212')
+	canvas2.pack()
+	frame2 = tk.Frame(confWindow,bg='#121212')
+	frame2.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	spacer1 = tk.Label(frame2,text = ' ',font='Arial 30',bg='#121212')
+	spacer1.pack(side='top')
+
+	confLabel = tk.Label(frame2,text=text,bg='#121212',font='Arial 15 bold')
+	if confirmed:
+		confLabel['fg'] = '#27ae60'
+	else:
+		confLabel['fg'] = '#e74c3c'
+	confLabel.pack(side='top')
+
+	spacer2 = tk.Label(frame2,text = ' ',font='Arial 15',bg='#121212')
+	spacer2.pack(side='top')
+
+	closeButton = tk.Button(frame2,text='Ok',fg='#575757',width=10,command=lambda: confWindow.destroy())
+	closeButton.pack(side='top')
 
 
 def search(entry,export):
@@ -2008,10 +2197,10 @@ def mainApp(currentUsername,isEmployee):
 	logoutButton = tk.Button(frame,text='Logout',command=logout,width=10,height=1,fg='#575757')
 	logoutButton.pack(side='bottom')
 
-	manageLabel = tk.Label(frame,text='Manage Tracks',font='Arial 11 bold',fg='#ffffff',bg='#101010')
-	manageLabel.place(relx=0.9,rely=0.23)
+	#manageLabel = tk.Label(frame,text='Manage',font='Arial 12 bold',fg='#ffffff',bg='#101010')
+	#manageLabel.place(relx=0.9,rely=0.23)
 	registerButton = tk.Button(frame,text='Register',command=lambda: registerPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-	registerButton.place(relx=0.9,rely=0.3)
+	registerButton.place(relx=0.9,rely=0.2)
 
 	# Show admin options and commands
 	if isEmployee:
@@ -2019,24 +2208,27 @@ def mainApp(currentUsername,isEmployee):
 		manageUsersButton.pack(side='top')
 
 		inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateTrackPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		inactivateButton.place(relx=0.9,rely=0.4)
+		inactivateButton.place(relx=0.9,rely=0.3)
 
 		modifyButton = tk.Button(frame,text='Modify',command=lambda: modifyPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		modifyButton.place(relx=0.9,rely=0.5)
+		modifyButton.place(relx=0.9,rely=0.4)
 
 		deleteButton = tk.Button(frame,text='Delete',command=lambda: deletePage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		deleteButton.place(relx=0.9,rely=0.6)
+		deleteButton.place(relx=0.9,rely=0.5)
 
 		statsButton = tk.Button(frame,text='Statistics',command=lambda: statsPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		statsButton.place(relx=0.9,rely=0.7)
+		statsButton.place(relx=0.9,rely=0.6)
 
 		bitacoraButton = tk.Button(frame,text='Binnacle',command=lambda: displayBitacora(currentUsername,isEmployee),width=10,height=2,fg='#575757')
-		bitacoraButton.place(relx=0.9,rely=0.8)
+		bitacoraButton.place(relx=0.9,rely=0.7)
+
+		simulateButton = tk.Button(frame,text='Simulate',command=lambda: simulationPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')
+		simulateButton.place(relx=0.9,rely=0.8)
 	else:
 		# Customer permission
 		canInactivate,canModify,canDelete = returnPermissions(currentUsername)
 
-		posY = 0.4
+		posY = 0.3
 
 		if canInactivate:
 			inactivateButton = tk.Button(frame,text='Inactivate',command=lambda: inactivateTrackPage(currentUsername,isEmployee),width=10,height=2,fg='#575757')

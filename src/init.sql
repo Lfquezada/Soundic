@@ -15969,6 +15969,34 @@ CREATE TABLE track_register
 );
 
 
+-- Reproducciones
+
+DROP TABLE IF EXISTS Plays;
+CREATE TABLE Plays 
+(
+    CustomerId INT NOT NULL,
+    TrackId INT NOT NULL,
+    Plays INT NOT NULL,
+    FOREIGN KEY (TrackId) REFERENCES Track(TrackId) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE OR REPLACE FUNCTION playTrack(argCustomerId int, argTrackId int) RETURNS void AS $$
+declare num numeric;
+    BEGIN
+        SELECT COUNT(*) into num
+        FROM Plays
+        WHERE customerid = argCustomerId AND trackid = argTrackId;
+
+        IF (num = 0) THEN
+            INSERT INTO Plays (customerid,trackid,plays) VALUES (argCustomerId,argTrackId,1);
+        ELSE
+            UPDATE plays SET plays = plays+1 WHERE customerid = argCustomerId AND trackid = argTrackId;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+
 -- Bitacora
 
 DROP TABLE IF EXISTS Bitacora;
@@ -16115,7 +16143,7 @@ JOIN genre ON track.genreid = genre.genreid
 GROUP BY genre.name
 ORDER BY ((AVG(track.milliseconds)/1000)/60) DESC;
 
---7.Cantidad de artistas diferentes por playlist (return 'Playlist','Artist Count')
+--7.Cantidad de artistas diferentes por playlist
 CREATE OR REPLACE VIEW stats7 AS
 SELECT playlist.name, COUNT(DISTINCT artist.name)
 FROM playlisttrack
@@ -16125,7 +16153,7 @@ JOIN album on track.albumid = album.albumid
 JOIN artist on album.artistid = artist.artistid
 GROUP BY playlist.name;
 
---8. Top 5 Artistas con más diversidad de géneros musicales (return 'Artist','Genre Count')
+--8. Top 5 Artistas con más diversidad de géneros musicales
 CREATE OR REPLACE VIEW stats8 AS
 SELECT artist.name, COUNT(DISTINCT genreid)
 FROM track

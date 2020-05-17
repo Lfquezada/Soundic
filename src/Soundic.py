@@ -1686,34 +1686,6 @@ def simulateSales(username,isEmployee,invociesToSimulate,year,month,day):
 			messagebox.showerror("Error", "A problem occured while simulating")
 
 
-def showConfirmation(text,confirmed):
-
-	# Set up window
-	confWindow = tk.Tk()
-	confWindow.title(" ")
-
-	canvas2 = tk.Canvas(confWindow,height=125,width=400,bg='#121212')
-	canvas2.pack()
-	frame2 = tk.Frame(confWindow,bg='#121212')
-	frame2.place(relx=0,rely=0,relwidth=1,relheight=1)
-
-	spacer1 = tk.Label(frame2,text = ' ',font='Arial 30',bg='#121212')
-	spacer1.pack(side='top')
-
-	confLabel = tk.Label(frame2,text=text,bg='#121212',font='Arial 15 bold')
-	if confirmed:
-		confLabel['fg'] = '#27ae60'
-	else:
-		confLabel['fg'] = '#e74c3c'
-	confLabel.pack(side='top')
-
-	spacer2 = tk.Label(frame2,text = ' ',font='Arial 15',bg='#121212')
-	spacer2.pack(side='top')
-
-	closeButton = tk.Button(frame2,text='Ok',fg='#575757',width=10,command=lambda: confWindow.destroy())
-	closeButton.pack(side='top')
-
-
 def search(entry,export):
 
 	entry = str(entry)

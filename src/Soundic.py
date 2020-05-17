@@ -5,6 +5,7 @@ import os
 import psycopg2 as pg
 import random
 import csv
+import webbrowser
 
 '''
 ------------------------------------------
@@ -1525,7 +1526,7 @@ def displayBitacora(username,isEmployee):
 
 
 def simulationPage(username,isEmployee):
-	root.title('Soundic Sales Simulation')
+	root.title('Soundic Simulation')
 
 	global canvas
 	canvas.destroy()
@@ -1544,7 +1545,7 @@ def simulationPage(username,isEmployee):
 	spacerTop = tk.Label(frame,text='',font='Arial 70',bg='#121212')
 	spacerTop.pack(side='top')
 
-	titleLabel = tk.Label(frame,text='Sales Simulation',font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel = tk.Label(frame,text='Sales & Plays Simulation',font='Arial 25 bold',bg='#121212',fg='white')
 	titleLabel.pack(side='top')
 
 	spacer1 = tk.Label(frame,text='',font='Arial 50',bg='#121212')
@@ -1720,7 +1721,7 @@ def search(entry,export):
 				for row in rowsSearch:
 					file.writerow(row)
 
-		displaySearchResult(rowsSearch)
+		outputTable.updateData(rowsSearch)
 
 
 
@@ -1829,27 +1830,86 @@ def showManageUsersOptions(username,customerid,firstname,lastname):
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',borderwidth=0, highlightthickness=0,command=lambda: mainApp(username,isEmployee=True))
 	returnToAppButton.pack(side='bottom')
 
+
+def playPage(username,isEmployee):
+	root.title('Soundic Play')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	tracksTable = MultiColumnListbox(frame,['Track','Artist','Kind','Album','Genre'])
+
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+		cursor.execute('SELECT track.name,artist.name,mediaType.name,album.title,genre.name FROM track JOIN album ON album.albumid = track.albumid JOIN artist ON artist.artistid = album.artistid JOIN genre ON genre.genreid = track.genreid JOIN mediatype ON mediatype.mediatypeid = track.mediatypeid')
+	else:
+		cursor.execute("SELECT track.name,artist.name,mediaType.name,album.title,genre.name FROM track JOIN album ON album.albumid = track.albumid JOIN artist ON artist.artistid = album.artistid JOIN genre ON genre.genreid = track.genreid JOIN mediatype ON mediatype.mediatypeid = track.mediatypeid JOIN (SELECT x.trackid FROM (SELECT itemid as trackid,username FROM bitacora WHERE itemtype = 'track' UNION SELECT track.trackid,customer.username FROM invoice JOIN invoiceline ON invoiceline.invoiceid = invoice.invoiceid JOIN customer ON invoice.customerid = customer.customerid JOIN track ON track.trackid = invoiceline.trackid) x WHERE x.username = %s) r ON r.trackid = track.trackid",[username])
+	
+	rows = cursor.fetchall()
+	tracksTable.updateData(rows)
+
+	# Play Button
+	playButton = tk.Button(frame,image=playIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: playTrack(username,isEmployee,tracksTable.getSelection()))
+	playButton.place(relx=0.48,rely=0.02,relwidth=0.025,relheight=0.042)
+
+	# Decorative Buttons
+	prevButton = tk.Button(frame,image=playPrevIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	prevButton.place(relx=0.38,rely=0.02,relwidth=0.025,relheight=0.042)
+	nextButton = tk.Button(frame,image=playNextIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	nextButton.place(relx=0.58,rely=0.02,relwidth=0.024,relheight=0.042)
+		
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
+def playTrack(username,isEmployee,selection):
+
+	if not isEmployee and selection != None:
+		trackName = selection[0]
+		artistName = selection[1]
+		albumName = selection[3]
+
+		query = 'SELECT track.trackid, (SELECT customerid FROM customer WHERE customer.username = %s) FROM track JOIN album ON album.albumid = track.albumid JOIN artist ON artist.artistid = album.artistid WHERE track.name = %s AND artist.name = %s AND album.title = %s'
+		cursor.execute(query,[username,trackName,artistName,albumName])
+		rows = cursor.fetchall()
+		
+		playTrackId = rows[0][0]
+		playCustomerId = rows[0][1]
+
+		cursor.execute('SELECT * from playTrack(%s,%s)',[playCustomerId,playTrackId])
+		connection.commit()
+
+	if selection != None:
+		# open YT song
+		webbrowser.open('https://www.youtube.com/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ')
+
+
 def allowInactivate(username,customerid):
-	query = "UPDATE Customer SET inactive_permission=true WHERE CustomerId = %s"
+	query = 'UPDATE Customer SET inactive_permission=true WHERE CustomerId = %s'
 	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
 
 def allowModify(username,customerid):
-	query = "UPDATE Customer SET modify_permission=true WHERE CustomerId = %s"
+	query = 'UPDATE Customer SET modify_permission=true WHERE CustomerId = %s'
 	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
 
 def allowDelete(username,customerid):
-	query = "UPDATE Customer SET delete_permission=true WHERE CustomerId = %s"
+	query = 'UPDATE Customer SET delete_permission=true WHERE CustomerId = %s'
 	cursor.execute(query,[customerid])
 	connection.commit()
 	mainApp(username,isEmployee=True)
-
-# Fill output Table with the query result
-def displaySearchResult(rows):
-	outputTable.updateData(rows)
 
 def isInt(v):
     try:
@@ -1902,6 +1962,21 @@ class MultiColumnListbox(object):
 		self.tree.tag_configure('odd',background='#171717')
 		self.tree.tag_configure('even',background='#121212')
 
+		self.selected = None
+		self.tree.bind('<<TreeviewSelect>>', self.on_select)
+
+	def on_select(self, event):
+		self.selected = event.widget.selection()
+
+	def getSelection(self):
+		textData = []
+		if self.selected != None:
+			for idx in self.selected:
+				textData.append(self.tree.item(idx)['values'])
+			return textData[0]
+		else:
+			return None
+
 	def buildTree(self,rows):
 		for col in self.columnsToShow:
 			self.tree.heading(col, text=col.title())
@@ -1942,7 +2017,7 @@ class MultiColumnListbox(object):
 ------------------------------------------
 '''
 
-global loginLogo,logo,searchIcon,userIcon
+global loginLogo,logo,searchIcon,userIcon,searchIcon,exportIcon,playIcon
 
 # Login Screen
 def login(reload):
@@ -2227,15 +2302,19 @@ def mainApp(currentUsername,isEmployee):
 
 	# Search text field
 	searchEntry = tk.Entry(frame,text='Search',fg='#ffffff',bg='#171717')
-	searchEntry.place(relx=0.005,rely=0.01,relwidth=0.25,relheight=0.05)
+	searchEntry.place(relx=0.005,rely=0.01,relwidth=0.2,relheight=0.05)
 
 	# Search Button
 	searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=False))
-	searchButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.042)
+	searchButton.place(relx=0.215,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Export Button
 	exportButton = tk.Button(frame,image=exportIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=True))
-	exportButton.place(relx=0.32,rely=0.015,relwidth=0.025,relheight=0.042)
+	exportButton.place(relx=0.28,rely=0.015,relwidth=0.025,relheight=0.042)
+
+	# Play Button
+	playButton = tk.Button(frame,image=playIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: playPage(currentUsername,isEmployee))
+	playButton.place(relx=0.345,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Profile Button
 	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: showProfile(currentUsername,isEmployee))
@@ -2264,6 +2343,9 @@ logo = tk.PhotoImage(file='assets/logo-soundic.png')
 searchIcon = tk.PhotoImage(file='assets/icon-search.png')
 userIcon = tk.PhotoImage(file='assets/icon-user.png')
 exportIcon = tk.PhotoImage(file='assets/icon-export.png')
+playIcon = tk.PhotoImage(file='assets/icon-play.png')
+playPrevIcon = tk.PhotoImage(file='assets/icon-playprev.png')
+playNextIcon = tk.PhotoImage(file='assets/icon-playnext.png')
 
 login(reload=False)
 root.mainloop()

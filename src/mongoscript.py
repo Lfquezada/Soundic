@@ -15,15 +15,15 @@ cursor = connection.cursor()
 #Writing json file with purchases made on the date indicated
 def purchases (date):
 	query = """
-	     SELECT row_to_json(purchases) FROM (
-	      SELECT i.InvoiceDate AS date, g.name AS genre, c.FirstName, c.LastName
+		WITH purchases (date, genre, firstname, lastname, customerid) 
+		AS ( SELECT i.InvoiceDate AS date, g.name AS genre, c.FirstName, c.LastName, c.CustomerId
 			FROM InvoiceLine il
 			JOIN Invoice i ON il.InvoiceId= i.InvoiceId
 			JOIN Customer c ON i.CustomerId=c.CustomerId
 			JOIN Track t ON t.TrackId=il.TrackId
 			JOIN Genre g ON g.GenreId=t.GenreId
-			WHERE i.InvoiceDate= %s
-	     ) purchases;
+			WHERE i.InvoiceDate= %s)
+		SELECT json_agg(purchases) from purchases
 		"""
 	#Writing json file with purchases made on the date indicated
 	cursor.execute(query,[date])
@@ -46,13 +46,15 @@ def purchases (date):
 #Writing json file with recent tracks 
 def RecentTracks():
 	query="""
-	SELECT row_to_json(data) FROM(
-		SELECT t.TrackId, t.Name, t.AlbumId, t.MediaTypeId, t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice, g.name AS genre
+	WITH newTracks (Trackid, name, album, MediaType, composer, Milliseconds, Bytes, UnitPrice, genre) 
+	AS (SELECT t.TrackId, t.Name, a.Title AS album, m.MediaTypeId AS MediaType, t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice, g.name AS genre
 		FROM track_register r
 		JOIN Track t ON  t.TrackId=r.TrackId
 		JOIN Genre g ON t.GenreId=g.GenreId
-		WHERE r.Date >= '2020-04-30'
-	)data;
+		JOIN Album a ON a.AlbumId=t.AlbumId
+		JOIN MediaType m ON m.MediaTypeId= t.MediaTypeId
+		WHERE r.Date >= '2020-04-30')
+	SELECT json_agg(newTracks) from newTracks
 	"""
 	cursor.execute(query)
 	rows = cursor.fetchall()
@@ -68,8 +70,16 @@ def RecentTracks():
 	    data_json = json.load(data_file)
 	recent_tracks_collection.insert(data_json)
 
+def recommendation(date):
+	genres=[]
+	result={}
+	query = purchases_collection.find({'purchases.json_agg.date':'2010-02-08T00:00:00'}, {'purchases.json_agg.genre':1})
+	for i in query:
+		result['genre']:id
+	print(result)
 
-purchases('2010/2/8')
-RecentTracks()
+#purchases('2010/2/8')
+#RecentTracks()
+recommendation('2010-02-08')
 
 

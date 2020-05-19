@@ -1383,6 +1383,10 @@ def statsPage(username,isEmployee):
 	pageTitleLabel = tk.Label(frame,text='Statistics',font='Arial 40 bold',bg='#121212',fg='white')
 	pageTitleLabel.pack(side='top')
 
+	# Extended Stats
+	extendedStatsButton = tk.Button(frame,text='Extended Stats',command=lambda: displayExtendedStatsPage(username,isEmployee),width=15,height=2,fg='#575757')
+	extendedStatsButton.place(relx=0.2,rely=0.05)
+
 	# Col 1
 	title1 = 'Artists with the most albums'
 	stats1Button = tk.Button(frame,text=title1,command=lambda: displayStats(username,isEmployee,1,title1),width=40,height=2,fg='#575757')
@@ -1490,6 +1494,48 @@ def displayStats(username,isEmployee,num,title):
 		
 	returnToStatsButton = tk.Button(frame,text='Return to Statistics',fg='#575757',command=lambda: statsPage(username,isEmployee))
 	returnToStatsButton.pack(side='bottom')
+
+
+def displayExtendedStatsPage(username,isEmployee):
+	root.title('Soundic Extended Stats')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacerTop = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacerTop.pack(side='top')
+	pageTitleLabel = tk.Label(frame,text='Statistics',font='Arial 40 bold',bg='#121212',fg='white')
+	pageTitleLabel.pack(side='top')
+
+	stats1Button = tk.Button(frame,text='title1',command=lambda: displayExtendedStats(username,isEmployee,1),width=40,height=2,fg='#575757')
+	stats1Button.place(relx=0.1,rely=0.2)
+
+	stats2Button = tk.Button(frame,text='title2',command=lambda: displayExtendedStats(username,isEmployee,2),width=40,height=2,fg='#575757')
+	stats2Button.place(relx=0.1,rely=0.4)
+
+	stats3Button = tk.Button(frame,text='title3',command=lambda: displayExtendedStats(username,isEmployee,3),width=40,height=2,fg='#575757')
+	stats3Button.place(relx=0.6,rely=0.2)
+
+	stats4Button = tk.Button(frame,text='title4',command=lambda: displayExtendedStats(username,isEmployee,4),width=40,height=2,fg='#575757')
+	stats4Button.place(relx=0.6,rely=0.4)
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
+def displayExtendedStats(username,isEmployee,num):
+	pass
 
 
 def displayBitacora(username,isEmployee):

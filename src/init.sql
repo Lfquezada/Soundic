@@ -16004,7 +16004,7 @@ CREATE TABLE Bitacora
 (
     ItemId INT NOT NULL,
     Username VARCHAR(10) NOT NULL,
-    Operation VARCHAR(8) NOT NULL, -- delete, modify & register
+    Operation VARCHAR(200) NOT NULL, -- delete, modify & register
     ItemType VARCHAR(6), -- artist, album, track
     Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -16034,9 +16034,21 @@ ORDER BY date DESC;
 -- Triggers Bitacora
 
 CREATE OR REPLACE FUNCTION mofify_BitacoraTrack() RETURNS TRIGGER AS $$
+declare oper varchar;
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'modify','track');
+            oper = 'modifyied';
+            IF (OLD.name != NEW.name) THEN
+                oper = CONCAT(oper,' name'); END IF;
+            IF (OLD.composer != NEW.composer) THEN
+                oper = CONCAT(oper,' composer'); END IF;
+            IF (OLD.milliseconds != NEW.milliseconds) THEN
+                oper = CONCAT(oper,' milliseconds'); END IF;
+            IF (OLD.bytes != NEW.bytes) THEN
+                oper = CONCAT(oper,' bytes'); END IF;
+            IF (OLD.unitprice != NEW.unitprice) THEN
+                oper = CONCAT(oper,' unitprice'); END IF;
+            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,oper,'track');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'register','track');
@@ -16048,7 +16060,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION mofify_BitacoraAlbum() RETURNS TRIGGER AS $$
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'modify','album');
+            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'modified title','album');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'register','album');
@@ -16060,7 +16072,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION mofify_BitacoraArtist() RETURNS TRIGGER AS $$
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'modify','artist');
+            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'modified name','artist');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'register','artist');

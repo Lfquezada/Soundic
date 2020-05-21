@@ -1384,8 +1384,10 @@ def statsPage(username,isEmployee):
 	pageTitleLabel.pack(side='top')
 
 	# Extended Stats
-	extendedStatsButton = tk.Button(frame,text='Extended Stats',command=lambda: displayExtendedStatsPage(username,isEmployee),width=15,height=2,fg='#575757')
-	extendedStatsButton.place(relx=0.2,rely=0.05)
+	extendedStatsButton = tk.Button(frame,image=nextPageIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: displayExtendedStatsPage(username,isEmployee))
+	extendedStatsButton.place(relx=0.9,rely=0.9,relwidth=0.024,relheight=0.042)
+	eSLabel = tk.Label(frame,text='Extended Stats',font='Arial 15 bold',bg='#121212',fg='#ffffff')
+	eSLabel.place(relx=0.8,rely=0.9)
 
 	# Col 1
 	title1 = 'Artists with the most albums'
@@ -1497,7 +1499,7 @@ def displayStats(username,isEmployee,num,title):
 
 
 def displayExtendedStatsPage(username,isEmployee):
-	root.title('Soundic Extended Stats')
+	root.title('Soundic Extended Statistics')
 
 	global canvas
 	canvas.destroy()
@@ -1515,27 +1517,160 @@ def displayExtendedStatsPage(username,isEmployee):
 
 	spacerTop = tk.Label(frame,text='',font='Arial 15',bg='#121212')
 	spacerTop.pack(side='top')
-	pageTitleLabel = tk.Label(frame,text='Statistics',font='Arial 40 bold',bg='#121212',fg='white')
+	pageTitleLabel = tk.Label(frame,text='Extended Statistics',font='Arial 40 bold',bg='#121212',fg='white')
 	pageTitleLabel.pack(side='top')
 
-	stats1Button = tk.Button(frame,text='title1',command=lambda: displayExtendedStats(username,isEmployee,1),width=40,height=2,fg='#575757')
+	stats1Button = tk.Button(frame,text='Weekly Sales',command=lambda: extendedStatsInputPage(username,isEmployee,1),width=40,height=2,fg='#575757')
 	stats1Button.place(relx=0.1,rely=0.2)
 
-	stats2Button = tk.Button(frame,text='title2',command=lambda: displayExtendedStats(username,isEmployee,2),width=40,height=2,fg='#575757')
+	stats2Button = tk.Button(frame,text='Artists With the Most Sales',command=lambda: extendedStatsInputPage(username,isEmployee,2),width=40,height=2,fg='#575757')
 	stats2Button.place(relx=0.1,rely=0.4)
 
-	stats3Button = tk.Button(frame,text='title3',command=lambda: displayExtendedStats(username,isEmployee,3),width=40,height=2,fg='#575757')
+	stats3Button = tk.Button(frame,text='Genre Sales',command=lambda: extendedStatsInputPage(username,isEmployee,3),width=40,height=2,fg='#575757')
 	stats3Button.place(relx=0.6,rely=0.2)
 
-	stats4Button = tk.Button(frame,text='title4',command=lambda: displayExtendedStats(username,isEmployee,4),width=40,height=2,fg='#575757')
+	stats4Button = tk.Button(frame,text='Most Played Tracks by an Artist',command=lambda: extendedStatsInputPage(username,isEmployee,4),width=40,height=2,fg='#575757')
 	stats4Button.place(relx=0.6,rely=0.4)
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
 
 
-def displayExtendedStats(username,isEmployee,num):
-	pass
+def extendedStatsInputPage(username,isEmployee,statid):
+	root.title('Soundic Extended Statistics')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	instruction1 = tk.Label(frame,text = 'Start Date (YYYY/MM/dd)',fg='#ffffff',bg='#121212')
+	entry1 = tk.Entry(frame,fg='#ffffff',bg='#171717')
+
+	spacer2 = tk.Label(frame,text='',font='Arial 25',bg='#121212')
+	instruction2 = tk.Label(frame,text = 'End Date (YYYY/MM/dd)',fg='#ffffff',bg='#121212')
+	entry2 = tk.Entry(frame,fg='#ffffff',bg='#171717')
+
+	spacer3 = tk.Label(frame,text='',font='Arial 25',bg='#121212')
+	instruction3 = tk.Label(frame,text = 'Artist amount',fg='#ffffff',bg='#121212')
+	entry3 = tk.Entry(frame,fg='#ffffff',bg='#171717')
+
+	spacer4 = tk.Label(frame,text='',font='Arial 175',bg='#121212')
+	instruction4 = tk.Label(frame,text = 'Artist name',fg='#ffffff',bg='#121212')
+	entry4 = tk.Entry(frame,fg='#ffffff',bg='#171717')
+
+	if statid in [1,2,3]:
+		spacer1.pack(side='top')
+		instruction1.pack(side='top')
+		entry1.pack(side='top')
+
+		spacer2.pack(side='top')
+		instruction2.pack(side='top')
+		entry2.pack(side='top')
+
+	if statid == 2:
+		spacer3.pack(side='top')
+		instruction3.pack(side='top')
+		entry3.pack(side='top')
+
+	if statid == 4:
+		spacer4.pack(side='top')
+		instruction4.pack(side='top')
+		entry4.pack(side='top')
+
+		spacer3 = tk.Label(frame,text='',font='Arial 25',bg='#121212')
+		instruction3 = tk.Label(frame,text = 'Song amount',fg='#ffffff',bg='#121212')
+		entry3 = tk.Entry(frame,fg='#ffffff',bg='#171717')
+		spacer3.pack(side='top')
+		instruction3.pack(side='top')
+		entry3.pack(side='top')
+
+	spacerF = tk.Label(frame,text='',font='Arial 25',bg='#121212')
+	spacerF.pack(side='top')
+
+	goButton = tk.Button(frame,text='Go',command=lambda: displayExtendedStats(username,isEmployee,statid,entry1.get(),entry2.get(),entry3.get(),entry4.get()),width=15,height=2,fg='#575757')
+	goButton.pack(side='top')
+
+	returnToAppButton = tk.Button(frame,text='Return to Extended Stats',fg='#575757',command=lambda: displayExtendedStatsPage(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+
+def displayExtendedStats(username,isEmployee,statid,dateStart=None,dateEnd=None,n=None,artistName=None):
+	root.title('Soundic Extended Statistics')
+
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	spacer1 = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacer1.pack(side='top')
+
+	global statsTable
+
+	if statid == 1:
+		title = 'Weekly Sales'
+		cols = ['Year-Week','Sales','Total ($)']
+		statsTable = MultiColumnListbox(frame,cols)
+		query = 'SELECT * FROM SalesWeek(%s,%s)'
+		cursor.execute(query,[dateStart,dateEnd])
+	if statid == 2:
+		title = 'Top ' + n + ' Artists With the Most Sales'
+		cols = ['Artist ID','Name','Sales']
+		statsTable = MultiColumnListbox(frame,cols)
+		query = 'SELECT * FROM ArtistRange(%s,%s,%s)'
+		cursor.execute(query,[dateStart,dateEnd,n])
+	if statid == 3:
+		title = 'Genre Sales'
+		cols = ['Genre ID','Genre','Sales']
+		statsTable = MultiColumnListbox(frame,cols)
+		query = 'SELECT * FROM GenreRange(%s,%s)'
+		cursor.execute(query,[dateStart,dateEnd])
+	if statid == 4:
+		title = 'Most Played Tracks by an Artist'
+		cols = ['Artist','Track','Plays']
+		statsTable = MultiColumnListbox(frame,cols)
+		query = 'SELECT * FROM ArtistPlays(%s,%s)'
+		cursor.execute(query,[artistName,n])
+
+	rows = cursor.fetchall()
+	statsTable.updateData(rows)
+
+	titleLabel = tk.Label(frame,text=title,font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel.pack(side='top')
+
+	exportButton = tk.Button(frame,image=exportIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: export(rows,cols))
+	exportButton.place(relx=0.05,rely=0.02,relwidth=0.025,relheight=0.042)
+		
+	returnToStatsButton = tk.Button(frame,text='Return to Statistics',fg='#575757',command=lambda: statsPage(username,isEmployee))
+	returnToStatsButton.pack(side='bottom')
+
+
+def export(rows,colTitles):
+	with open('stats-export.csv', mode='w') as file:
+		file = csv.writer(file, delimiter=',')
+		file.writerow(colTitles)
+		for row in rows:
+			file.writerow(row)
 
 
 def displayBitacora(username,isEmployee):
@@ -2056,7 +2191,6 @@ class MultiColumnListbox(object):
 
 
 
-
 '''
 ------------------------------------------
 				GUI Setup
@@ -2392,6 +2526,7 @@ exportIcon = tk.PhotoImage(file='assets/icon-export.png')
 playIcon = tk.PhotoImage(file='assets/icon-play.png')
 playPrevIcon = tk.PhotoImage(file='assets/icon-playprev.png')
 playNextIcon = tk.PhotoImage(file='assets/icon-playnext.png')
+nextPageIcon = tk.PhotoImage(file='assets/icon-nextpage.png')
 
 login(reload=False)
 root.mainloop()
@@ -2404,12 +2539,4 @@ root.mainloop()
 '''
 cursor.close()
 connection.close()
-
-
-
-
-
-
-
-
 

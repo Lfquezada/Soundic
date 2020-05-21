@@ -16178,3 +16178,85 @@ FROM Invoice
 GROUP BY BillingCountry
 ORDER BY (COUNT(BillingCountry)) DESC;
 
+
+-- AMPLIACION DE REPORTERIA
+
+
+-- FUNCION 1 PARA VENTAS POR SEMANA EN UN RANGO DADO
+DROP FUNCTION IF EXISTS SalesWeek;
+CREATE FUNCTION SalesWeek(inicial DATE, finale DATE)
+RETURNS TABLE (anio_semana text, sales bigint, salesTotal numeric)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT to_char(DATE(invoicedate), 'IYYY-IW') AS yr_week, COUNT(*) AS sales, SUM(total) AS salesTotal
+    FROM invoice
+    WHERE invoicedate > $1 AND invoicedate < $2
+    GROUP BY  yr_week
+    ORDER BY yr_week;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
+-- FUNCION 2 PARA LOS N ARTISTAS CON MAS VENTAS EN UN RANGO DE FECHAS
+DROP FUNCTION IF EXISTS ArtistRange;
+CREATE FUNCTION ArtistRange(inicial DATE, finale DATE, num int)
+RETURNS TABLE (artistid int, nombre varchar, ventas bigint)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT artist.artistid, artist.name, COUNT(*) AS VENTAS
+    FROM invoiceline
+    JOIN invoice on invoiceline.invoiceid = invoice.invoiceid
+    JOIN track on invoiceline.trackid = track.trackid
+    JOIN album on track.albumid = album.albumid
+    JOIN artist on album.artistid = artist.artistid
+    WHERE invoicedate > $1 AND invoicedate < $2
+    GROUP BY artist.artistid
+    ORDER BY COUNT(*) DESC
+    LIMIT $3;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
+-- FUNCION 3 PARA VENTAS POR GENERO EN UN RANGO DE FECHAS
+DROP FUNCTION IF EXISTS GenreRange;
+CREATE FUNCTION GenreRange(inicial DATE, finale DATE)
+RETURNS TABLE (genid int, genre varchar, ventas bigint)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT genre.genreid, genre.name, COUNT(*) AS VENTAS
+    FROM invoiceline
+    JOIN invoice on invoiceline.invoiceid = invoice.invoiceid
+    JOIN track on invoiceline.trackid = track.trackid
+    JOIN genre on track.genreid = genre.genreid
+    WHERE invoicedate > $1 AND invoicedate < $2
+    GROUP BY genre.genreid
+    ORDER BY VENTAS DESC;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
+-- FUNCION 4 PARA CANCIONES MAS REPRODUCIDAS DE UN ARTISTA
+DROP FUNCTION IF EXISTS ArtistPlays;
+CREATE FUNCTION ArtistPlays(artista varchar, num int)
+RETURNS TABLE (artist varchar, song varchar, reproducciones bigint)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT artist.name AS artista, track.name AS cancion, SUM(plays) AS plays
+    FROM plays
+    JOIN track on track.trackid = plays.trackid
+    JOIN album on track.albumid = album.albumid
+    JOIN artist on album.artistid = artist.artistid
+    WHERE artist.name = $1
+    GROUP BY track.trackid, artist.name
+    LIMIT $2;
+END;
+$$
+LANGUAGE 'plpgsql';
+

@@ -2490,11 +2490,15 @@ def mainApp(currentUsername,isEmployee):
 
 	# Export Button
 	exportButton = tk.Button(frame,image=exportIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=True))
-	exportButton.place(relx=0.28,rely=0.015,relwidth=0.025,relheight=0.042)
+	exportButton.place(relx=0.265,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Play Button
 	playButton = tk.Button(frame,image=playIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: playPage(currentUsername,isEmployee))
-	playButton.place(relx=0.345,rely=0.015,relwidth=0.025,relheight=0.042)
+	playButton.place(relx=0.315,rely=0.015,relwidth=0.025,relheight=0.042)
+
+	# Shop Button
+	shopButton = tk.Button(frame,image=shopIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: playPage(currentUsername,isEmployee))
+	shopButton.place(relx=0.365,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Profile Button
 	profileButton = tk.Button(frame,image=userIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: showProfile(currentUsername,isEmployee))
@@ -2527,6 +2531,7 @@ playIcon = tk.PhotoImage(file='assets/icon-play.png')
 playPrevIcon = tk.PhotoImage(file='assets/icon-playprev.png')
 playNextIcon = tk.PhotoImage(file='assets/icon-playnext.png')
 nextPageIcon = tk.PhotoImage(file='assets/icon-nextpage.png')
+shopIcon = tk.PhotoImage(file='assets/icon-shop.png')
 
 login(reload=False)
 root.mainloop()

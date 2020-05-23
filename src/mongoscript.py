@@ -7,7 +7,7 @@ import pymongo
 client = pymongo.MongoClient('mongodb://localhost:27017/')
 db=client.recommendations
 purchases_collection = db["purchases"]
-recent_tracks_collection= db["new_tracks"]
+tracks_collection= db["tracks"]
 
 connection = pg.connect(user='postgres',host='localhost',port='5432',database='Soundic',password='dbpass20')
 cursor = connection.cursor()
@@ -23,24 +23,15 @@ def purchases (date):
 			JOIN Track t ON t.TrackId=il.TrackId
 			JOIN Genre g ON g.GenreId=t.GenreId
 			WHERE i.InvoiceDate= %s)
-		SELECT json_agg(purchases) from purchases
+		SELECT row_to_json(purchases) from purchases
 		"""
+	data_json={}
 	#Writing json file with purchases made on the date indicated
 	cursor.execute(query,[date])
 	rows = cursor.fetchall()
-	purchases=[]
 	for row in rows:
 		for key in cursor.description:
-			purchases.append({key[0]: value for value in row})
-	with open('purchases.json', 'w') as file:
-		json.dump({'purchases':purchases}, file, indent=4 )
-
-	#Reading json file and adding a document to a mongo db collection
-	data_json={}
-	with open('purchases.json', 'r') as data_file:
-	    data_json = json.load(data_file)
-	purchases_collection.insert(data_json)
-
+			purchases_collection.insert_one({key[0]: value for value in row})
 
 
 #Writing json file with recent tracks 
@@ -53,33 +44,44 @@ def RecentTracks():
 		JOIN Genre g ON t.GenreId=g.GenreId
 		JOIN Album a ON a.AlbumId=t.AlbumId
 		JOIN MediaType m ON m.MediaTypeId= t.MediaTypeId
-		WHERE r.Date >= '2020-04-30')
-	SELECT json_agg(newTracks) from newTracks
+		WHERE r.Date > '2012-10-01')
+	SELECT row_to_json(newTracks) from newTracks
 	"""
 	cursor.execute(query)
 	rows = cursor.fetchall()
-	tracks=[]
 	for row in rows:
 		for key in cursor.description:
-			tracks.append({key[0]: value for value in row})
-	with open('RecentTracks.json', 'w') as file:
-		json.dump({'tracks':tracks}, file, indent=4 )
+			tracks_collection.insert_many({key[0]: value for value in row})
 
-	data_json={}
-	with open('RecentTracks.json', 'r') as data_file:
-	    data_json = json.load(data_file)
-	recent_tracks_collection.insert(data_json)
 
 def recommendation(date):
 	genres=[]
-	result={}
-	query = purchases_collection.find({'purchases.json_agg.date':'2010-02-08T00:00:00'}, {'purchases.json_agg.genre':1})
-	for i in query:
-		result['genre']:id
-	print(result)
+	clients=[]
+	result=''
 
+	query = purchases_collection.find({"row_to_json.date" : date }, {'row_to_json.genre':1, '_id':0})
+	for i in query:
+		result=str(i)
+		f=result.split(':')
+		k=f[2]
+		h=((k.replace(" '","")).replace("}","")).replace("'","")
+		genres.append(h)
+	print (genres)
+
+	query1 = purchases_collection.find({"row_to_json.date" : date}, {'row_to_json.firstname':1, '_id':0})
+	for i in query1:
+		result=str(i)
+		f=result.split(':')
+		k=f[2]
+		h=((k.replace(" '","")).replace("}","")).replace("'","")
+		clients.append(h)
+	print (clients)
+	for i in genres:
+		query2=recent_tracks_collection.find({"row_to_json.genre": i})
+		
+			
 #purchases('2010/2/8')
-#RecentTracks()
-recommendation('2010-02-08')
+RecentTracks()
+#recommendation('2010-02-08T00:00:00')
 
 

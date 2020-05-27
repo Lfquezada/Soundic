@@ -44,56 +44,44 @@ def RecentTracks():
 		JOIN Genre g ON t.GenreId=g.GenreId
 		JOIN Album a ON a.AlbumId=t.AlbumId
 		JOIN MediaType m ON m.MediaTypeId= t.MediaTypeId
-		WHERE r.Date > '2020-03-01')
+		WHERE r.Date > '2012-10-01')
 	SELECT row_to_json(newTracks) from newTracks
 	"""
 	cursor.execute(query)
 	rows = cursor.fetchall()
 	for row in rows:
 		for key in cursor.description:
-			tracks_collection.insert_one({key[0]: value for value in row})
+			tracks_collection.insert_many({key[0]: value for value in row})
 
 
 def recommendation(date):
 	genres=[]
 	clients=[]
 	result=''
-	recommendation=[]
 
-	#Looking for clients in Mongo DB
-	query = purchases_collection.find({"row_to_json.date" : date }, {'row_to_json.genre':1, '_id':0}).limit(10)
+	query = purchases_collection.find({"row_to_json.date" : date }, {'row_to_json.genre':1, '_id':0})
 	for i in query:
 		result=str(i)
 		f=result.split(':')
 		k=f[2]
 		h=((k.replace(" '","")).replace("}","")).replace("'","")
 		genres.append(h)
-	#print (genres)
+	print (genres)
 
-
-	#Looking for the purchased tracks genres by the clients in Mongo DB
-	query1 = purchases_collection.find({"row_to_json.date" : date}, {'row_to_json.firstname':1, '_id':0}).limit(10)
+	query1 = purchases_collection.find({"row_to_json.date" : date}, {'row_to_json.firstname':1, '_id':0})
 	for i in query1:
 		result=str(i)
 		f=result.split(':')
 		k=f[2]
 		h=((k.replace(" '","")).replace("}","")).replace("'","")
 		clients.append(h)
-	#print (clients)
-
-	#Recommendations for the users found in Mongo DB based on the tracks genres
-	contador=0
+	print (clients)
 	for i in genres:
-		query2=tracks_collection.find({"row_to_json.genre": i}, {'_id':0})
-		print ('\n Our recommendation for: '+ str (clients[contador])+ '\n')
-		print ('\n')
-		for j in query2:
-			print (j)
-		contador=contador+1
+		query2=recent_tracks_collection.find({"row_to_json.genre": i})
 		
 			
 #purchases('2010/2/8')
-#RecentTracks()
-recommendation('2010-02-08T00:00:00')
+RecentTracks()
+#recommendation('2010-02-08T00:00:00')
 
 

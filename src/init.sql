@@ -16004,7 +16004,7 @@ CREATE TABLE Bitacora
 (
     ItemId INT NOT NULL,
     Username VARCHAR(10) NOT NULL,
-    Operation VARCHAR(200) NOT NULL, -- delete, modify & register
+    Operation VARCHAR(8) NOT NULL, -- delete, modify & register
     ItemType VARCHAR(6), -- artist, album, track
     Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -16034,21 +16034,9 @@ ORDER BY date DESC;
 -- Triggers Bitacora
 
 CREATE OR REPLACE FUNCTION mofify_BitacoraTrack() RETURNS TRIGGER AS $$
-declare oper varchar;
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            oper = 'modifyied';
-            IF (OLD.name != NEW.name) THEN
-                oper = CONCAT(oper,' name'); END IF;
-            IF (OLD.composer != NEW.composer) THEN
-                oper = CONCAT(oper,' composer'); END IF;
-            IF (OLD.milliseconds != NEW.milliseconds) THEN
-                oper = CONCAT(oper,' milliseconds'); END IF;
-            IF (OLD.bytes != NEW.bytes) THEN
-                oper = CONCAT(oper,' bytes'); END IF;
-            IF (OLD.unitprice != NEW.unitprice) THEN
-                oper = CONCAT(oper,' unitprice'); END IF;
-            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,oper,'track');
+            INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'modify','track');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.trackid, NEW.lastModBy,'register','track');
@@ -16060,7 +16048,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION mofify_BitacoraAlbum() RETURNS TRIGGER AS $$
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'modified title','album');
+            INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'modify','album');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.albumid, NEW.lastModBy,'register','album');
@@ -16072,7 +16060,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION mofify_BitacoraArtist() RETURNS TRIGGER AS $$
     BEGIN
         IF (TG_OP = 'UPDATE') THEN
-            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'modified name','artist');
+            INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'modify','artist');
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
             INSERT INTO Bitacora VALUES (NEW.artistid, NEW.lastModBy,'register','artist');
@@ -16189,86 +16177,4 @@ SELECT   BillingCountry, COUNT(BillingCountry)
 FROM Invoice 
 GROUP BY BillingCountry
 ORDER BY (COUNT(BillingCountry)) DESC;
-
-
--- AMPLIACION DE REPORTERIA
-
-
--- FUNCION 1 PARA VENTAS POR SEMANA EN UN RANGO DADO
-DROP FUNCTION IF EXISTS SalesWeek;
-CREATE FUNCTION SalesWeek(inicial DATE, finale DATE)
-RETURNS TABLE (anio_semana text, sales bigint, salesTotal numeric)
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT to_char(DATE(invoicedate), 'IYYY-IW') AS yr_week, COUNT(*) AS sales, SUM(total) AS salesTotal
-    FROM invoice
-    WHERE invoicedate > $1 AND invoicedate < $2
-    GROUP BY  yr_week
-    ORDER BY yr_week;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-
--- FUNCION 2 PARA LOS N ARTISTAS CON MAS VENTAS EN UN RANGO DE FECHAS
-DROP FUNCTION IF EXISTS ArtistRange;
-CREATE FUNCTION ArtistRange(inicial DATE, finale DATE, num int)
-RETURNS TABLE (artistid int, nombre varchar, ventas bigint)
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT artist.artistid, artist.name, COUNT(*) AS VENTAS
-    FROM invoiceline
-    JOIN invoice on invoiceline.invoiceid = invoice.invoiceid
-    JOIN track on invoiceline.trackid = track.trackid
-    JOIN album on track.albumid = album.albumid
-    JOIN artist on album.artistid = artist.artistid
-    WHERE invoicedate > $1 AND invoicedate < $2
-    GROUP BY artist.artistid
-    ORDER BY COUNT(*) DESC
-    LIMIT $3;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-
--- FUNCION 3 PARA VENTAS POR GENERO EN UN RANGO DE FECHAS
-DROP FUNCTION IF EXISTS GenreRange;
-CREATE FUNCTION GenreRange(inicial DATE, finale DATE)
-RETURNS TABLE (genid int, genre varchar, ventas bigint)
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT genre.genreid, genre.name, COUNT(*) AS VENTAS
-    FROM invoiceline
-    JOIN invoice on invoiceline.invoiceid = invoice.invoiceid
-    JOIN track on invoiceline.trackid = track.trackid
-    JOIN genre on track.genreid = genre.genreid
-    WHERE invoicedate > $1 AND invoicedate < $2
-    GROUP BY genre.genreid
-    ORDER BY VENTAS DESC;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-
--- FUNCION 4 PARA CANCIONES MAS REPRODUCIDAS DE UN ARTISTA
-DROP FUNCTION IF EXISTS ArtistPlays;
-CREATE FUNCTION ArtistPlays(artista varchar, num int)
-RETURNS TABLE (artist varchar, song varchar, reproducciones bigint)
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT artist.name AS artista, track.name AS cancion, SUM(plays) AS plays
-    FROM plays
-    JOIN track on track.trackid = plays.trackid
-    JOIN album on track.albumid = album.albumid
-    JOIN artist on album.artistid = artist.artistid
-    WHERE artist.name = $1
-    GROUP BY track.trackid, artist.name
-    LIMIT $2;
-END;
-$$
-LANGUAGE 'plpgsql';
 

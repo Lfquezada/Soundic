@@ -1,3 +1,4 @@
+#Soundic
 #This python script interact with a postgresql db and allows to save a report of an specific date in a mongo db
 
 import psycopg2 as pg
@@ -37,7 +38,7 @@ def purchases (date):
 
 
 #Writing json file with recent tracks 
-def RecentTracks():
+def RecentTracks(date):
 	query="""
 	WITH newTracks (Trackid, name, album, MediaType, composer, Milliseconds, Bytes, UnitPrice, genre) 
 	AS (SELECT t.TrackId, t.Name, a.Title AS album, m.MediaTypeId AS MediaType, t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice, g.name AS genre
@@ -46,10 +47,10 @@ def RecentTracks():
 		JOIN Genre g ON t.GenreId=g.GenreId
 		JOIN Album a ON a.AlbumId=t.AlbumId
 		JOIN MediaType m ON m.MediaTypeId= t.MediaTypeId
-		WHERE r.Date > '2020-03-01')
+		WHERE r.Date >= %s)
 	SELECT row_to_json(newTracks) from newTracks
 	"""
-	cursor.execute(query)
+	cursor.execute(query,[date])
 	rows = cursor.fetchall()
 	tracks_collection.delete_many( { } )
 	for row in rows:
@@ -66,7 +67,7 @@ def recommendation():
 	recommendation=[]
 
 	#Looking for clients in Mongo DB
-	query = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'} }, {'row_to_json.genre':1, '_id':0}).limit(10)
+	query = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'} }, {'row_to_json.genre':1, '_id':0}).limit(20)
 	for i in query:
 		result=str(i)
 		f=result.split(':')
@@ -77,7 +78,7 @@ def recommendation():
 
 
 	#Looking for the purchased tracks genres by the clients in Mongo DB
-	query1 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.firstname':1, '_id':0}).limit(10)
+	query1 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.firstname':1, '_id':0}).limit(20)
 	for i in query1:
 		result=str(i)
 		f=result.split(':')
@@ -86,7 +87,7 @@ def recommendation():
 		clients.append(h)
 	#print (clients)
 
-	query3 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.track':1, '_id':0}).limit(10)
+	query3 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.track':1, '_id':0}).limit(20)
 	for i in query3:
 		result=str(i)
 		f=result.split(':')
@@ -103,11 +104,35 @@ def recommendation():
 			print (j)
 		contador=contador+1
 		
-			
+
+#Add purchases to mongo DB purchases collection 			
 #purchases('2013/9/2')
 #purchases('2013/12/4')
 #purchases('2010/02/08')
-RecentTracks()
-#recommendation()
+#purchases ('2012/12/28')
+#2013/5/2
 
+#Add recent tracks to mongo DB tracks collection
+#RecentTracks()
+
+#Make a recommendation
+#recommendation()
+#'2020-03-01'
+
+print ('\nBienvenido, a continuación se muestran las acciones que puede realizar \n 1. Ingresar las compras de una fecha especifica a la BD de Mongo \n 2. Actualizar las canciones recientes en la BD de mongo \n 3. Obtener recomendaciones para 10 clientes \n 4. Salir' )
+opcion=input('Ingrese la accion que desea realizar: ')
+while (opcion!='4'):
+	if (opcion=='1'):
+		fecha=input('Ingrese la fecha de las compras que desea almacenar en la BD de Mongo en formato (YYYY/M/D) ')
+		purchases(fecha)
+	elif (opcion=='2'):
+		date=input('Ingrese la fecha a partir de la cual desea que se ingresen las canciones recientes en formato (YYYY-MM-DD) ')
+		RecentTracks(date)
+	elif (opcion=='3'):
+		print ('-------------------------------------------------Recomendaciones-----------------------------------------------------------------------------------')
+		recommendation()
+	else: 
+		print('La opcion ingresada no es valida')
+	print ('\nBienvenido, a continuación se muestran las acciones que puede realizar \n 1. Ingresar las compras de una fecha especifica a la BD de Mongo \n 2. Actualizar las canciones recientes en la BD de mongo \n 3. Obtener recomendaciones para 10 clientes \n 4. Salir' )
+	opcion=input('Ingrese la accion que desea realizar> ')
 

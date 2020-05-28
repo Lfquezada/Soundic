@@ -5,7 +5,10 @@ import os
 import psycopg2 as pg
 import random
 import csv
-import webbrowser
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+import urllib.request,urllib.parse,re
+import webbrowser as wb
 
 '''
 ------------------------------------------
@@ -2052,26 +2055,33 @@ def playPage(username,isEmployee):
 	returnToAppButton.pack(side='bottom')
 
 
+def playSong(artist, song):
+    query = str(artist) +" "+ str(song)
+    query_string = urllib.parse.urlencode({"search_query" : query})
+    html_content = urllib.request.urlopen("http://www.youtube.com/results?"+query_string)
+    search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+    wb.open_new("http://www.youtube.com/watch?v={}".format(search_results[0]))
+
+
 def playTrack(username,isEmployee,selection):
 
-	if not isEmployee and selection != None:
+	if selection != None:
 		trackName = selection[0]
 		artistName = selection[1]
 		albumName = selection[3]
 
-		query = 'SELECT track.trackid, (SELECT customerid FROM customer WHERE customer.username = %s) FROM track JOIN album ON album.albumid = track.albumid JOIN artist ON artist.artistid = album.artistid WHERE track.name = %s AND artist.name = %s AND album.title = %s'
-		cursor.execute(query,[username,trackName,artistName,albumName])
-		rows = cursor.fetchall()
-		
-		playTrackId = rows[0][0]
-		playCustomerId = rows[0][1]
+		if not isEmployee:
+			query = 'SELECT track.trackid, (SELECT customerid FROM customer WHERE customer.username = %s) FROM track JOIN album ON album.albumid = track.albumid JOIN artist ON artist.artistid = album.artistid WHERE track.name = %s AND artist.name = %s AND album.title = %s'
+			cursor.execute(query,[username,trackName,artistName,albumName])
+			rows = cursor.fetchall()
+			
+			playTrackId = rows[0][0]
+			playCustomerId = rows[0][1]
 
-		cursor.execute('SELECT * from playTrack(%s,%s)',[playCustomerId,playTrackId])
-		connection.commit()
+			cursor.execute('SELECT * from playTrack(%s,%s)',[playCustomerId,playTrackId])
+			connection.commit()
 
-	if selection != None:
-		# open YT song
-		webbrowser.open('https://www.youtube.com/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ')
+		playSong(artistName,trackName)
 
 
 def allowInactivate(username,customerid):

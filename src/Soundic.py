@@ -2144,6 +2144,7 @@ def checkOut(username,isEmployee,cart):
 	for i in cart:
 		query='SELECT * FROM checkout(%s,%s)'
 		cursor.execute(query,[i,username])
+		connection.commit()
 	# TODO: get user data and proceed to call sql function checkout to generate invoices and invoice lines
 
 

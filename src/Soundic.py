@@ -2141,44 +2141,46 @@ def clearCart():
 	messagebox.showinfo('Soundic Shop', "Shopping cart cleared!")
 
 def checkOut(username,isEmployee,cart):
-	prices=[]
-	total=0
-	invoiceid=0
-	contador=0
-	price=''
-	for i in cart:
-		query='SELECT t.UnitPrice::float FROM Track t WHERE t.TrackId=%s'
-		cursor.execute(query,[i])
-		rows = cursor.fetchall()
-		prices.append(rows[0][0])
+	try:
+		prices = []
 
-	for j in prices:
-		total=total+(prices[contador])
-		contador=contador+1
-	total=str(total)
-	query= ''' 
-		INSERT INTO Invoice VALUES (
-            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1)+1,
-            (SELECT c.CustomerId FROM Customer c WHERE c.username=%s), 
-			CURRENT_TIMESTAMP, 
-            (SELECT c.Address FROM Customer c WHERE c.username=%s), 
-            (SELECT c.City FROM Customer c WHERE c.username=%s), 
-			(SELECT c.State FROM Customer c WHERE c.username=%s),	
-            (SELECT c.Country FROM Customer c WHERE c.username=%s),
-            (SELECT c.PostalCode FROM Customer c WHERE c.username=%s), 
-            %s);
-		'''
-	cursor.execute(query,[username,username,username,username,username,username,total])
-	connection.commit()
-	query='SELECT i.InvoiceId FROM Invoice i ORDER	BY i.InvoiceId DESC LIMIT 1'
-	cursor.execute(query)
-	rows = cursor.fetchall()
-	invoiceid=int(rows[0][0])
-	for k in cart:
-		query='SELECT * FROM checkout(%s,%s)'
-		cursor.execute(query,[k,invoiceid])
+		for i in cart:
+			query='SELECT t.UnitPrice::float FROM Track t WHERE t.TrackId=%s'
+			cursor.execute(query,[i])
+			rows = cursor.fetchall()
+			prices.append(rows[0][0])
+
+		total = sum(prices)
+
+		query = ''' 
+			INSERT INTO Invoice VALUES (
+	            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1)+1,
+	            (SELECT c.CustomerId FROM Customer c WHERE c.username=%s), 
+				CURRENT_TIMESTAMP, 
+	            (SELECT c.Address FROM Customer c WHERE c.username=%s), 
+	            (SELECT c.City FROM Customer c WHERE c.username=%s), 
+				(SELECT c.State FROM Customer c WHERE c.username=%s),	
+	            (SELECT c.Country FROM Customer c WHERE c.username=%s),
+	            (SELECT c.PostalCode FROM Customer c WHERE c.username=%s), 
+	            %s);
+			'''
+		cursor.execute(query,[username,username,username,username,username,username,total])
+
+		query='SELECT i.InvoiceId FROM Invoice i ORDER	BY i.InvoiceId DESC LIMIT 1'
+		cursor.execute(query)
+		rows = cursor.fetchall()
+		invoiceid=int(rows[0][0])
+
+		for k in cart:
+			query='SELECT * FROM checkout(%s,%s)'
+			cursor.execute(query,[k,invoiceid])
+		
 		connection.commit()
-	# TODO: get user data and proceed to call sql function checkout to generate invoices and invoice lines
+		messagebox.showinfo('Soundic Shop', "Checkout successful!")
+		mainApp(username,isEmployee)
+		
+	except:
+		messagebox.showerror('Error', "An error occured during checkout, try again later.")
 
 
 def allowInactivate(username,customerid):

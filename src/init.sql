@@ -16273,27 +16273,16 @@ $$
 LANGUAGE 'plpgsql';
 
 --FUNCION PARA AGREGAR LAS COMPRAS REALIZADAS A LA TABLA INVOICE E INVOICELINE
-CREATE OR REPLACE FUNCTION checkout(trackid int, userid int ) RETURNS void 
+DROP FUNCTION IF EXISTS checkout;
+CREATE OR REPLACE FUNCTION checkout(trackid int, invoiceid int ) RETURNS void 
 AS $$
     BEGIN
-            INSERT INTO Invoice VALUES (
-            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1)+1,
-            $2, 
-            CURRENT_TIMESTAMP, 
-            (SELECT c.Address FROM Customer c WHERE c.customerid=$2), 
-            (SELECT c.City FROM Customer c WHERE c.customerid=$2), 
-            (SELECT c.State FROM Customer c WHERE c.customerid=$2), 
-            (SELECT c.Country FROM Customer c WHERE c.customerid=$2),
-            (SELECT c.PostalCode FROM Customer c WHERE c.customerid=$2), 
-            (SELECT t.UnitPrice FROM Track  t WHERE t.trackid=$1));
-
             INSERT INTO InvoiceLine VALUES(
             (SELECT il.InvoiceLineId FROM InvoiceLine il ORDER BY il.InvoiceLineId DESC LIMIT 1)+1,
-            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1),
+            $2,
             $1, 
             (SELECT t.UnitPrice FROM Track t WHERE t.trackid=$1), 
             1
             );
 END;
-$$ 
-LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;

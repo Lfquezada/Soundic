@@ -2141,7 +2141,9 @@ def clearCart():
 	messagebox.showinfo('Soundic Shop', "Shopping cart cleared!")
 
 def checkOut(username,isEmployee,cart):
-	print(cart)
+	for i in cart:
+		query='SELECT * FROM checkout(%s,%s)'
+		cursor.execute(query,[i,username])
 	# TODO: get user data and proceed to call sql function checkout to generate invoices and invoice lines
 
 

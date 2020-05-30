@@ -2084,6 +2084,67 @@ def playTrack(username,isEmployee,selection):
 		playSong(artistName,trackName)
 
 
+def shopPage(username,isEmployee):
+	root.title('Soundic Shop')
+
+	# Canvas setup
+	global canvas
+	canvas.destroy()
+	canvas = tk.Canvas(root,height=700,width=1200,bg='#101010')
+	canvas.pack()
+	frame = tk.Frame(root,bg='#121212')
+	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
+
+	global cart
+	cart = []
+
+	# Search text field
+	searchEntry = tk.Entry(frame,text='Search',fg='#ffffff',bg='#171717')
+	searchEntry.place(relx=0.005,rely=0.01,relwidth=0.2,relheight=0.05)
+
+	# Search Button
+	searchButton = tk.Button(frame,image=searchIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: search(searchEntry.get(),export=False))
+	searchButton.place(relx=0.215,rely=0.015,relwidth=0.025,relheight=0.042)
+
+	global outputTable
+	outputTable = MultiColumnListbox(frame,['Track','Artist','Kind','Album','Genre'])
+
+	# Soundic Logo
+	logoLabel = tk.Label(frame,image=logo,pady=0, padx=0, borderwidth=0, highlightthickness=0)
+	logoLabel.place(relx=0.82,rely=0.01)
+	if isEmployee:
+		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
+		adminLabel.place(relx=0.935,rely=0.07)
+
+	addButton = tk.Button(frame,text='Add to Cart',command=lambda: addToCart(outputTable.getSelection()),width=10,height=2,fg='#575757')
+	addButton.place(relx=0.9,rely=0.2)
+
+	clearButton = tk.Button(frame,text='Clear Cart',command=lambda: clearCart(),width=10,height=2,fg='#575757')
+	clearButton.place(relx=0.9,rely=0.3)
+
+	checkOutButton = tk.Button(frame,text='Check Out',command=lambda: checkOut(username,isEmployee,cart),width=10,height=2,fg='#575757')
+	checkOutButton.place(relx=0.9,rely=0.4)
+
+	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
+	returnToAppButton.pack(side='bottom')
+
+def addToCart(selection):
+	if selection != None:
+		query = 'SELECT track.trackid  FROM Track JOIN Album ON Album.AlbumId = Track.AlbumId JOIN Artist ON Artist.ArtistId = Album.ArtistId WHERE Track.Name = %s AND Artist.name = %s AND Album.title = %s'
+		cursor.execute(query,[selection[0],selection[1],selection[3]])
+		rows = cursor.fetchall()
+		cart.append(rows[0][0])
+
+def clearCart():
+	global cart
+	cart = []
+	messagebox.showinfo('Soundic Shop', "Shopping cart cleared!")
+
+def checkOut(username,isEmployee,cart):
+	print(cart)
+	# TODO: get user data and proceed to call sql function checkout to generate invoices and invoice lines
+
+
 def allowInactivate(username,customerid):
 	query = 'UPDATE Customer SET inactive_permission=true WHERE CustomerId = %s'
 	cursor.execute(query,[customerid])
@@ -2507,7 +2568,7 @@ def mainApp(currentUsername,isEmployee):
 	playButton.place(relx=0.315,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Shop Button
-	shopButton = tk.Button(frame,image=shopIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: playPage(currentUsername,isEmployee))
+	shopButton = tk.Button(frame,image=shopIcon,pady=0, padx=0, borderwidth=0, highlightthickness=0,command=lambda: shopPage(currentUsername,isEmployee))
 	shopButton.place(relx=0.365,rely=0.015,relwidth=0.025,relheight=0.042)
 
 	# Profile Button

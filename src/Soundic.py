@@ -2056,11 +2056,14 @@ def playPage(username,isEmployee):
 
 
 def playSong(artist, song):
-    query = str(artist) +" "+ str(song)
-    query_string = urllib.parse.urlencode({"search_query" : query})
-    html_content = urllib.request.urlopen("http://www.youtube.com/results?"+query_string)
-    search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
-    wb.open_new("http://www.youtube.com/watch?v={}".format(search_results[0]))
+	try:
+	    query = str(artist) +" "+ str(song)
+	    query_string = urllib.parse.urlencode({"search_query" : query})
+	    html_content = urllib.request.urlopen("http://www.youtube.com/results?"+query_string)
+	    search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
+	    wb.open_new("http://www.youtube.com/watch?v={}".format(search_results[0]))
+	except:
+		messagebox.showerror('Error', "An error occured during song loading, try again later.")
 
 
 def playTrack(username,isEmployee,selection):
@@ -2095,6 +2098,12 @@ def shopPage(username,isEmployee):
 	frame = tk.Frame(root,bg='#121212')
 	frame.place(relx=0,rely=0,relwidth=1,relheight=1)
 
+	spacerTop = tk.Label(frame,text='',font='Arial 15',bg='#121212')
+	spacerTop.pack(side='top')
+
+	titleLabel = tk.Label(frame,text='Soundic Shop',font='Arial 25 bold',bg='#121212',fg='white')
+	titleLabel.pack(side='top')
+
 	global cart
 	cart = []
 
@@ -2116,14 +2125,21 @@ def shopPage(username,isEmployee):
 		adminLabel = tk.Label(frame,text='Admin',font='Arial 14 bold',fg='#ffffff',bg='#101010')
 		adminLabel.place(relx=0.935,rely=0.07)
 
+	global countLabel
+	countLabel = tk.Label(frame,text='0',font='Arial 50 bold',bg='#121212',fg='white')
+	countLabel.place(relx=0.925,rely=0.125)
+
+	songsLabel = tk.Label(frame,text='Cart',font='Arial 25 bold',bg='#121212',fg='white')
+	songsLabel.place(relx=0.908,rely=0.22)
+
 	addButton = tk.Button(frame,text='Add to Cart',command=lambda: addToCart(outputTable.getSelection()),width=10,height=2,fg='#575757')
-	addButton.place(relx=0.9,rely=0.2)
+	addButton.place(relx=0.9,rely=0.3)
 
 	clearButton = tk.Button(frame,text='Clear Cart',command=lambda: clearCart(),width=10,height=2,fg='#575757')
-	clearButton.place(relx=0.9,rely=0.3)
+	clearButton.place(relx=0.9,rely=0.4)
 
 	checkOutButton = tk.Button(frame,text='Check Out',command=lambda: checkOut(username,isEmployee,cart),width=10,height=2,fg='#575757')
-	checkOutButton.place(relx=0.9,rely=0.4)
+	checkOutButton.place(relx=0.9,rely=0.5)
 
 	returnToAppButton = tk.Button(frame,text='Return to App',fg='#575757',command=lambda: mainApp(username,isEmployee))
 	returnToAppButton.pack(side='bottom')
@@ -2134,53 +2150,60 @@ def addToCart(selection):
 		cursor.execute(query,[selection[0],selection[1],selection[3]])
 		rows = cursor.fetchall()
 		cart.append(rows[0][0])
+		countLabel['text'] = str(len(cart))
 
 def clearCart():
 	global cart
 	cart = []
+	countLabel['text'] = '0'
 	messagebox.showinfo('Soundic Shop', "Shopping cart cleared!")
 
 def checkOut(username,isEmployee,cart):
-	try:
-		prices = []
 
-		for i in cart:
-			query='SELECT t.UnitPrice::float FROM Track t WHERE t.TrackId=%s'
-			cursor.execute(query,[i])
+	if not isEmployee:
+		try:
+			prices = []
+
+			for i in cart:
+				query='SELECT t.UnitPrice::float FROM Track t WHERE t.TrackId=%s'
+				cursor.execute(query,[i])
+				rows = cursor.fetchall()
+				prices.append(rows[0][0])
+
+			total = sum(prices)
+
+			query = ''' 
+				INSERT INTO Invoice VALUES (
+		            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1)+1,
+		            (SELECT c.CustomerId FROM Customer c WHERE c.username=%s), 
+					CURRENT_TIMESTAMP, 
+		            (SELECT c.Address FROM Customer c WHERE c.username=%s), 
+		            (SELECT c.City FROM Customer c WHERE c.username=%s), 
+					(SELECT c.State FROM Customer c WHERE c.username=%s),	
+		            (SELECT c.Country FROM Customer c WHERE c.username=%s),
+		            (SELECT c.PostalCode FROM Customer c WHERE c.username=%s), 
+		            %s);
+				'''
+			cursor.execute(query,[username,username,username,username,username,username,total])
+
+			query='SELECT i.InvoiceId FROM Invoice i ORDER	BY i.InvoiceId DESC LIMIT 1'
+			cursor.execute(query)
 			rows = cursor.fetchall()
-			prices.append(rows[0][0])
+			invoiceid=int(rows[0][0])
 
-		total = sum(prices)
-
-		query = ''' 
-			INSERT INTO Invoice VALUES (
-	            (SELECT i.InvoiceId FROM Invoice i ORDER BY i.InvoiceId DESC LIMIT 1)+1,
-	            (SELECT c.CustomerId FROM Customer c WHERE c.username=%s), 
-				CURRENT_TIMESTAMP, 
-	            (SELECT c.Address FROM Customer c WHERE c.username=%s), 
-	            (SELECT c.City FROM Customer c WHERE c.username=%s), 
-				(SELECT c.State FROM Customer c WHERE c.username=%s),	
-	            (SELECT c.Country FROM Customer c WHERE c.username=%s),
-	            (SELECT c.PostalCode FROM Customer c WHERE c.username=%s), 
-	            %s);
-			'''
-		cursor.execute(query,[username,username,username,username,username,username,total])
-
-		query='SELECT i.InvoiceId FROM Invoice i ORDER	BY i.InvoiceId DESC LIMIT 1'
-		cursor.execute(query)
-		rows = cursor.fetchall()
-		invoiceid=int(rows[0][0])
-
-		for k in cart:
-			query='SELECT * FROM checkout(%s,%s)'
-			cursor.execute(query,[k,invoiceid])
-		
-		connection.commit()
-		messagebox.showinfo('Soundic Shop', "Checkout successful!")
+			for k in cart:
+				query='SELECT * FROM checkout(%s,%s)'
+				cursor.execute(query,[k,invoiceid])
+			
+			connection.commit()
+			messagebox.showinfo('Soundic Shop', "Checkout successful!")
+			mainApp(username,isEmployee)
+			
+		except:
+			messagebox.showerror('Error', "An error occured during checkout, try again later.")
+	else:
+		messagebox.showinfo('Soundic Shop (Admin)', "Checkout successful!")
 		mainApp(username,isEmployee)
-		
-	except:
-		messagebox.showerror('Error', "An error occured during checkout, try again later.")
 
 
 def allowInactivate(username,customerid):

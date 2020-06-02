@@ -2194,9 +2194,9 @@ def checkOut(username,isEmployee,cart):
 			for k in cart:
 				query='SELECT * FROM checkout(%s,%s)'
 				cursor.execute(query,[k,invoiceid])
-			
 			connection.commit()
 			messagebox.showinfo('Soundic Shop', "Checkout successful!")
+			printpdf(invoiceid)
 			mainApp(username,isEmployee)
 			
 		except:
@@ -2205,6 +2205,84 @@ def checkOut(username,isEmployee,cart):
 		messagebox.showinfo('Soundic Shop (Admin)', "Checkout successful!")
 		mainApp(username,isEmployee)
 
+#Print an Invoice pdf after a checkout
+def printpdf(invoiceid):
+	from reportlab.lib.pagesizes import letter
+	from reportlab.pdfgen import canvas
+	from reportlab.lib.colors import HexColor
+
+	query='SELECT i.Total FROM Invoice i WHERE i.InvoiceId=%s' 
+	cursor.execute(query,[invoiceid])
+	rows = cursor.fetchall()
+	total= float(rows[0][0])
+
+	query='SELECT i.InvoiceDate FROM Invoice i WHERE i.InvoiceId=%s' 
+	cursor.execute(query,[invoiceid])
+	rows = cursor.fetchall()
+	date= rows[0][0]
+
+	query='SELECT c.FirstName, c.LastName FROM Invoice i JOIN Customer c ON i.CustomerId = c.CustomerId  WHERE i.InvoiceId=%s' 
+	cursor.execute(query,[invoiceid])
+	rows = cursor.fetchall()
+	name= rows[0][0]
+	lastname= rows[0][1]
+
+	query= 'SELECT i.BillingAddress FROM Invoice i  WHERE i.InvoiceId=%s'
+	cursor.execute(query,[invoiceid])
+	rows= cursor.fetchall()
+	address=rows[0][0]
+
+	query= 'SELECT i.BillingCity FROM Invoice i  WHERE i.InvoiceId=%s'
+	cursor.execute(query,[invoiceid])
+	rows= cursor.fetchall()
+	city=rows[0][0]
+
+	query= 'SELECT i.BillingCountry FROM Invoice i  WHERE i.InvoiceId=%s'
+	cursor.execute(query,[invoiceid])
+	rows= cursor.fetchall()
+	country=rows[0][0]
+
+	canvas = canvas.Canvas(("Invoice_"+str(invoiceid)+".pdf"), pagesize=letter)
+	canvas.setLineWidth(.3)
+	canvas.setFont('Helvetica', 12)
+	canvas.drawString(30,750,'Invoice details')
+	
+	canvas.drawString(400,750, ("Date: "+str(date)))
+	canvas.line(420,747,580,747)
+	 
+	canvas.drawString(275,725,'Client:')
+	canvas.drawString(500,725,(str(name)+" "+ str(lastname)))
+	canvas.line(378,723,580,723)
+	 
+	canvas.drawString(30,703,'Full Address: ')
+	canvas.line(120,700,580,700)
+	canvas.drawString(120,703,(str(address)+", "+str(city)+", "+ str(country)))
+
+	canvas.drawImage("logo-soundic.png", 200, 620)
+
+	query='SELECT il.InvoiceLineId, il.invoiceid, t.name, il.UnitPrice, il.Quantity, (il.UnitPrice*il.Quantity) FROM InvoiceLine il JOIN Track t ON t.TrackId=il.TrackId WHERE InvoiceId=%s'
+	cursor.execute(query,[invoiceid])
+	rows= cursor.fetchall()
+	line=0
+	canvas.drawString(30,590,"InvoiceLineId ")
+	canvas.drawString(130,590,"InvoiceId")
+	canvas.drawString(230,590, "Track")
+	canvas.drawString(330,590,"Unit Price")
+	canvas.drawString(430,590, "Quantity")
+	canvas.drawString(530,590, "Total")
+	for row in rows:
+		canvas.drawString(30,(570-line), str(row[0]))
+		canvas.drawString(130,(570-line), str(row[1]))
+		canvas.drawString(230,(570-line), str(row[2]))
+		canvas.drawString(330,(570-line), str(row[3]))
+		canvas.drawString(430,(570-line), str(row[4]))
+		canvas.drawString(530,(570-line), str(row[5]))
+		line=line+20
+	canvas.setFillColor(HexColor('#ff3104'))
+	canvas.drawString(490,(570-(line+20)), "Total: ")
+	canvas.drawString(530,(570-(line+20)), str(total))
+
+	canvas.save()
 
 def allowInactivate(username,customerid):
 	query = 'UPDATE Customer SET inactive_permission=true WHERE CustomerId = %s'

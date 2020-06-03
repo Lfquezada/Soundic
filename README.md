@@ -7,6 +7,7 @@ Proyecto 1
 * Python 3.x
 * psycopg2
 * tkinter
+* reportlab
 
 ## Usage
 1. Install PostgresSQL

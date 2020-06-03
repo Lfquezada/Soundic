@@ -2195,8 +2195,9 @@ def checkOut(username,isEmployee,cart):
 				query='SELECT * FROM checkout(%s,%s)'
 				cursor.execute(query,[k,invoiceid])
 			connection.commit()
-			messagebox.showinfo('Soundic Shop', "Checkout successful!")
+
 			printpdf(invoiceid)
+			messagebox.showinfo('Soundic Shop', "Checkout successful!")
 			mainApp(username,isEmployee)
 			
 		except:
@@ -2270,10 +2271,17 @@ def printpdf(invoiceid):
 	canvas.drawString(330,590,"Unit Price")
 	canvas.drawString(430,590, "Quantity")
 	canvas.drawString(530,590, "Total")
+
 	for row in rows:
+
+		# For long track names
+		tName = str(row[2])
+		if len(tName) > 14:
+			tName = tName[:12] + "..."
+
 		canvas.drawString(30,(570-line), str(row[0]))
 		canvas.drawString(130,(570-line), str(row[1]))
-		canvas.drawString(230,(570-line), str(row[2]))
+		canvas.drawString(230,(570-line), tName)
 		canvas.drawString(330,(570-line), str(row[3]))
 		canvas.drawString(430,(570-line), str(row[4]))
 		canvas.drawString(530,(570-line), str(row[5]))

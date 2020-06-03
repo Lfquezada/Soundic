@@ -62,6 +62,7 @@ def RecentTracks(date):
 def recommendation():
 	genres=[]
 	clients=[]
+	lastname=[]
 	tracks=[]
 	result=''
 	recommendation=[]
@@ -87,6 +88,15 @@ def recommendation():
 		clients.append(h)
 	#print (clients)
 
+	query1 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.lastname':1, '_id':0}).limit(20)
+	for i in query1:
+		result=str(i)
+		f=result.split(':')
+		k=f[2]
+		h=((k.replace(" '","")).replace("}","")).replace("'","")
+		lastname.append(h)
+
+
 	query3 = purchases_collection.find({"row_to_json.date" : {'$gt': '2008-12-31TT00:00:00'}}, {'row_to_json.track':1, '_id':0}).limit(20)
 	for i in query3:
 		result=str(i)
@@ -99,7 +109,7 @@ def recommendation():
 	contador=0
 	for i in genres:
 		query2=tracks_collection.find({"row_to_json.genre": i}, {'_id':0})
-		print ('\n Because you bought '+ str (tracks[contador])+ ' our recommendation for '+ str (clients[contador])+ '\n')
+		print ('\n Because you bought '+ str (tracks[contador])+ ' our recommendation for '+ str (clients[contador])+" "+ str (lastname[contador])+ '\n')
 		for j in query2:
 			print (j)
 		contador=contador+1

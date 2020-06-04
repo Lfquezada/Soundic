@@ -16267,6 +16267,7 @@ BEGIN
     JOIN artist on album.artistid = artist.artistid
     WHERE artist.name = $1
     GROUP BY track.trackid, artist.name
+    ORDER BY plays DESC
     LIMIT $2;
 END;
 $$
